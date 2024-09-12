@@ -7,5 +7,6 @@
     "outDir": "dist",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   }
 }
