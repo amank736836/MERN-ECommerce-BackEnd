@@ -1,5 +1,6 @@
 import express from "express";
 import userRoutes from "./routes/user.js";
+import productRoutes from "./routes/product.js";
 import { connectDB } from "./utils/features.js";
 import { errorMiddleware } from "./middlewares/error.js";
 const port = 4000;
@@ -16,6 +17,9 @@ app.get("/", (req, res) => {
 // USing Routes
 app.use("/api/v1/user", userRoutes);
 
+app.use("/api/v1/product", productRoutes);
+
+app.use("/uploads", express.static("uploads"));
 app.use(errorMiddleware);
 
 app.listen(port, () => {
