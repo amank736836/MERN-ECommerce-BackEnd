@@ -9,13 +9,14 @@ import { adminOnly } from "../middlewares/auth.js";
 
 const app = express.Router();
 
-//route - /api/v1/user/new
+// Create New User - /api/v1/user/new
 app.post("/new", newUser);
 
-//route - /api/v1/user/all
-app.get("/all",adminOnly, getAllUsers);
+// Get All Users - /api/v1/user/all
+app.get("/all", adminOnly, getAllUsers);
 
-//route - /api/v1/user/dynamicId
-app.route("/:id").get(getUserById).delete(adminOnly,deleteUser);
+// Get User By ID - /api/v1/user/:id
+// Delete User By ID - /api/v1/user/:id
+app.route("/:id").get(getUserById).delete(adminOnly, deleteUser);
 
 export default app;
