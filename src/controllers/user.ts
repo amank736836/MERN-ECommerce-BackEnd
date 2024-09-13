@@ -62,7 +62,7 @@ export const getUserById = TryCatch(
 
     return res.status(200).json({
       success: true,
-      message: "User Deleted Successfully",
+      message: "User found successfully",
       user,
     });
   }
