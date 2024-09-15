@@ -7,7 +7,7 @@ import { User } from "../models/user.js";
 export const adminOnly = TryCatch(async (req, res, next) => {
   const { id } = req.query;
   if (!id) {
-    return next(new ErrorHandler("Please provide id", 401));
+    return next(new ErrorHandler("Please provide admin id", 401));
   }
 
   const user = await User.findById(id);
