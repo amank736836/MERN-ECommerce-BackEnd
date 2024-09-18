@@ -8,6 +8,12 @@ export const errorMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
+
+  if (err.name === "CastError") {
+    const message = `Resource not found. Invalid Id`;
+    err = new ErrorHandler(message, 404);
+  }
+
   return res.status(400).json({
     success: false,
     message: err.message || "Internal Server Error",
