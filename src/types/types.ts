@@ -9,6 +9,38 @@ export interface NewUserRequestBody {
   _id: string;
   dob: Date;
 }
+export interface NewProductRequestBody {
+  name: string;
+  price: number;
+  category: string;
+  stock: number;
+}
+
+export type shippingInfoType = {
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  pinCode: number;
+};
+
+export type orderItemType = {
+  name: string;
+  photo: string;
+  price: number;
+  quantity: number;
+  productId: string;
+};
+export interface NewOrderRequestBody {
+  shippingInfo: shippingInfoType;
+  user: string;
+  subtotal: number;
+  tax: number;
+  shippingCharges: number;
+  discount: number;
+  total: number;
+  orderItems: orderItemType[];
+}
 
 export type ControllerType = (
   req: Request,
@@ -16,12 +48,6 @@ export type ControllerType = (
   next: NextFunction
 ) => Promise<void | Response<any, Record<string, any>>>;
 
-export interface NewProductRequestBody {
-  name: string;
-  price: number;
-  category: string;
-  stock: number;
-}
 
 export type SearchRequestQuery = {
   search?: string;
@@ -46,4 +72,8 @@ export type InvalidateCacheProps = {
   product?: boolean;
   order?: boolean;
   admin?: boolean;
+  userId?: string;
+  orderId?: string;
+  productId?: string | string[];
 };
+
