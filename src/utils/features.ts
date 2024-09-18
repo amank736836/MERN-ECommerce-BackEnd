@@ -1,16 +1,14 @@
 import mongoose from "mongoose";
-import { InvalidateCacheProps } from "../types/types.js";
 import { myCache } from "../app.js";
 import { Product } from "../models/product.js";
+import { InvalidateCacheProps, orderItemType } from "../types/types.js";
+import ErrorHandler from "./utility-class.js";
 
-export const connectDB = () => {
+export const connectDB = (uri: string) => {
   mongoose
-    .connect(
-      "mongodb+srv://aman:4n1i43zhssTGimyD@e-commerce.z9v1cge.mongodb.net/",
-      {
-        dbName: "Ecommerce_24",
-      }
-    )
+    .connect(uri, {
+      dbName: process.env.MONGO_DB,
+    })
     .then((c) => {
       console.log(`DB Connected to ${c.connection.name}`);
     })
@@ -23,6 +21,9 @@ export const invalidateCache = async ({
   product,
   order,
   admin,
+  userId,
+  orderId,
+  productId,
 }: InvalidateCacheProps) => {
   if (product) {
     const productKeys: string[] = [
@@ -30,19 +31,45 @@ export const invalidateCache = async ({
       "categories",
       "all-products",
     ];
-    // myCache.keys().forEach((key) => {
-    //   productKeys.push(key);
-    // });
-    const products = await Product.find({}).select("_id");
 
-    products.forEach((product) => {
-      productKeys.push(`product-${product._id}`);
-    });
+    if (typeof productId === "string") {
+      productKeys.push(`product-${productId}`);
+    }
+    if (
+      Array.isArray(productId) &&
+      productId !== null &&
+      productId.length > 0
+    ) {
+      productId.forEach((id) => {
+        productKeys.push(`product-${id}`);
+      });
+    }
 
     myCache.del(productKeys);
   }
   if (order) {
+    const orderKeys: string[] = [
+      "all-orders",
+      `my-orders-${userId}`,
+      `order-${orderId}`,
+    ];
+    myCache.del(orderKeys);
   }
   if (admin) {
+  }
+};
+
+export const reduceStock = async (orderItems: orderItemType[]) => {
+  for (let i = 0; i < orderItems.length; i++) {
+    const order = orderItems[i];
+    const product = await Product.findById(order.productId);
+    if (!product) {
+      throw new ErrorHandler("Product not found", 404);
+    }
+    if (product.stock < order.quantity) {
+      throw new ErrorHandler(`${product.name} is out of stock`, 400);
+    }
+    product.stock = product.stock - order.quantity;
+    await product.save();
   }
 };
