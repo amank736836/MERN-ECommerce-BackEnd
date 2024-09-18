@@ -1,7 +1,6 @@
-import { NextFunction, Request } from "express";
-import { TryCatch } from "./error.js";
-import ErrorHandler from "../utils/utility-class.js";
 import { User } from "../models/user.js";
+import ErrorHandler from "../utils/utility-class.js";
+import { TryCatch } from "./error.js";
 
 // Middleware to make sure only admin is allowed
 export const adminOnly = TryCatch(async (req, res, next) => {
@@ -16,7 +15,7 @@ export const adminOnly = TryCatch(async (req, res, next) => {
   }
 
   if (user.role !== "admin") {
-    return next(new ErrorHandler("You are not authorized", 401));
+    return next(new ErrorHandler("You are not authorized", 403));
   }
   next();
 });
