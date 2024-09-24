@@ -9,15 +9,19 @@ import dashboardRoute from "./routes/stats.js";
 import { connectDB } from "./utils/features.js";
 import { config } from "dotenv";
 import morgan from "morgan";
+import Stripe from "stripe";
 
 config({
   path: "./.env",
 });
 
 const port = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI || "";
+const stripeKey = process.env.STRIPE_KEY || "";
 
-connectDB(process.env.MONGO_URI as string);
+connectDB(MONGO_URI);
 
+export const stripe = new Stripe(stripeKey);
 export const myCache = new NodeCache();
 
 const app = express();
