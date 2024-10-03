@@ -9,19 +9,26 @@ import dashboardRoute from "./routes/stats.js";
 import { connectDB } from "./utils/features.js";
 import { config } from "dotenv";
 import morgan from "morgan";
-import Stripe from "stripe";
 
 config({
   path: "./.env",
 });
 
+import Stripe from "stripe";
+const stripeKey = process.env.STRIPE_KEY || "";
+export const stripe = new Stripe(stripeKey);
+
+import Razorpay from "razorpay";
+export const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || "",
+  key_secret: process.env.RAZORPAY_KEY_SECRET || "",
+});
+
 const port = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || "";
-const stripeKey = process.env.STRIPE_KEY || "";
 
 connectDB(MONGO_URI);
 
-export const stripe = new Stripe(stripeKey);
 export const myCache = new NodeCache();
 
 const app = express();
