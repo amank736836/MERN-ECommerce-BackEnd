@@ -5,13 +5,16 @@ import {
   applyDiscount,
   newCoupon,
   deleteCoupon,
-  createPaymentIntent,
+  createStripePaymentIntent,
+  createRazorpayPaymentIntent,
 } from "../controllers/payment.js";
 
 const app = express.Router();
 
 // Create payment intent - /api/v1/payment/create
-app.post("/create", createPaymentIntent);
+app.post("/createStripe", createStripePaymentIntent);
+
+app.post("/createRazorpay", createRazorpayPaymentIntent);
 
 // Apply discount - /api/v1/payment/discount
 app.post("/discount", applyDiscount);
