@@ -1,9 +1,9 @@
-import { stripe } from "../app.js";
+import { stripe, razorpay } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Coupon } from "../models/coupon.js";
 import ErrorHandler from "../utils/utility-class.js";
 
-export const createPaymentIntent = TryCatch(async (req, res, next) => {
+export const createStripePaymentIntent = TryCatch(async (req, res, next) => {
   const { amount } = req.body;
 
   if (!amount) {
@@ -19,7 +19,32 @@ export const createPaymentIntent = TryCatch(async (req, res, next) => {
     success: true,
     client_secret: paymentIntent.client_secret,
   });
+});
 
+export const createRazorpayPaymentIntent = TryCatch(async (req, res, next) => {
+  const { amount } = req.body;
+
+  if (!amount) {
+    return next(new ErrorHandler("Please enter an amount", 400));
+  }
+
+  const options = {
+    amount: Number(amount) * 100,
+    currency: "INR",
+  };
+
+  razorpay.orders.create(options, (err, order) => {
+    if (err) {
+      return next(new ErrorHandler("Error creating Razorpay order", 400));
+    }
+
+    return res.status(201).json({
+      success: true,
+      id: order.id,
+      currency: order.currency,
+      amount: order.amount,
+    });
+  });
 });
 
 export const newCoupon = TryCatch(async (req, res, next) => {
