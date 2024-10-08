@@ -9,6 +9,7 @@ import dashboardRoute from "./routes/stats.js";
 import { connectDB } from "./utils/features.js";
 import { config } from "dotenv";
 import morgan from "morgan";
+import cors from "cors";
 
 config({
   path: "./.env",
@@ -34,6 +35,11 @@ export const myCache = new NodeCache();
 const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("API is running....");
