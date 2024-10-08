@@ -117,10 +117,12 @@ export const getSearchProducts = TryCatch(
       .limit(limit)
       .skip(skip);
 
-    const [products, filteredOnlyProducts] = await Promise.all([
-      productsPromise,
-      Product.find({ ...baseQuery }),
-    ]);
+    const [products, filteredOnlyProducts, filteredOnlyProductsCategories] =
+      await Promise.all([
+        productsPromise,
+        Product.find({ ...baseQuery }),
+        Product.find({ ...baseQuery }).distinct("category"),
+      ]);
 
     const totalPage = Math.ceil(filteredOnlyProducts.length / limit);
 
@@ -129,6 +131,7 @@ export const getSearchProducts = TryCatch(
       message: "Filtered products",
       products,
       totalPage,
+      categories: filteredOnlyProductsCategories,
     });
   }
 );
