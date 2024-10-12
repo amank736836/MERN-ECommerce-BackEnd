@@ -38,10 +38,7 @@ const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 
-const allowedOrigins = [
-  process.env.FRONTEND_URL_1,
-  process.env.FRONTEND_URL_2,
-];
+const allowedOrigins = [process.env.FRONTEND_URL_1];
 
 app.use(
   cors({
