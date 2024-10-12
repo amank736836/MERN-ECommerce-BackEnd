@@ -1,15 +1,16 @@
+import cors from "cors";
+import { config } from "dotenv";
 import express from "express";
+import morgan from "morgan";
 import NodeCache from "node-cache";
 import { errorMiddleware } from "./middlewares/error.js";
+import NotFound from "./routes/notFound.js";
 import orderRoutes from "./routes/order.js";
-import productRoutes from "./routes/product.js";
-import userRoutes from "./routes/user.js";
 import paymentRoutes from "./routes/payment.js";
+import productRoutes from "./routes/product.js";
 import dashboardRoute from "./routes/stats.js";
+import userRoutes from "./routes/user.js";
 import { connectDB } from "./utils/features.js";
-import { config } from "dotenv";
-import morgan from "morgan";
-import cors from "cors";
 
 config({
   path: "./.env",
@@ -58,6 +59,8 @@ app.use("/api/v1/dashboard", dashboardRoute);
 
 app.use("/uploads", express.static("uploads"));
 app.use(errorMiddleware);
+
+app.use("*", NotFound);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
