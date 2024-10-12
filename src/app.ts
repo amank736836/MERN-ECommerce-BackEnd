@@ -38,11 +38,12 @@ const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 
-const allowedOrigins = [process.env.PROXY_URL_1];
+const allowedOrigins = [process.env.FRONTEND_URL_1];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      console.log("origin", origin);
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
         const msg =
