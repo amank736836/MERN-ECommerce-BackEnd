@@ -21,6 +21,7 @@ const stripeKey = process.env.STRIPE_KEY || "";
 export const stripe = new Stripe(stripeKey);
 
 import Razorpay from "razorpay";
+import ErrorHandler from "./utils/utility-class.js";
 export const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || "",
   key_secret: process.env.RAZORPAY_KEY_SECRET || "",
@@ -36,9 +37,21 @@ export const myCache = new NodeCache();
 const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
+
+const allowedOrigins = ["http://localhost:5173"];
+
 app.use(
   cors({
-    origin: "*",
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new ErrorHandler(msg, 403), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
   })
 );
 
