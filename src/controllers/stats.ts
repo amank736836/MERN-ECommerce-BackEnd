@@ -79,7 +79,7 @@ export const getDashboardStats = TryCatch(async (req, res, next) => {
       },
     });
 
-    const latestTransactionsPromise = Order.find({})
+    const latestOrdersPromise = Order.find({})
       .sort({ createdAt: -1 })
       .limit(4)
       .select(["orderItems", "discount", "total", "status"]);
@@ -97,7 +97,7 @@ export const getDashboardStats = TryCatch(async (req, res, next) => {
       lastSixMonthsOrders,
       categories,
       femaleUserCount,
-      latestTransactions,
+      latestOrders,
     ] = await Promise.all([
       thisMonthProductsPromise,
       thisMonthUsersPromise,
@@ -111,7 +111,7 @@ export const getDashboardStats = TryCatch(async (req, res, next) => {
       lastSixMonthsOrdersPromise,
       Product.distinct("category"),
       User.countDocuments({ gender: "female" }),
-      latestTransactionsPromise,
+      latestOrdersPromise,
     ]);
 
     const ChangePercent = {
@@ -119,12 +119,12 @@ export const getDashboardStats = TryCatch(async (req, res, next) => {
         thisMonthOrders.reduce((total, order) => total + (order.total || 0), 0),
         lastMonthOrders.reduce((total, order) => total + (order.total || 0), 0)
       ),
-      product: calculatePercentage(
+      products: calculatePercentage(
         thisMonthProducts.length,
         lastMonthProducts.length
       ),
-      user: calculatePercentage(thisMonthUsers.length, lastMonthUsers.length),
-      order: calculatePercentage(
+      users: calculatePercentage(thisMonthUsers.length, lastMonthUsers.length),
+      orders: calculatePercentage(
         thisMonthOrders.length,
         lastMonthOrders.length
       ),
@@ -165,7 +165,7 @@ export const getDashboardStats = TryCatch(async (req, res, next) => {
       female: femaleUserCount / userCount,
     };
 
-    const modifiedLatestTransactions = latestTransactions.map((order) => {
+    const modifiedLatestOrders = latestOrders.map((order) => {
       return {
         _id: order._id,
         discount: order.discount,
@@ -184,7 +184,7 @@ export const getDashboardStats = TryCatch(async (req, res, next) => {
         revenue: orderMonthlyRevenue,
       },
       userRatio,
-      latestTransactions: modifiedLatestTransactions,
+      latestOrders: modifiedLatestOrders,
     };
 
     myCache.set(key, JSON.stringify(stats));
