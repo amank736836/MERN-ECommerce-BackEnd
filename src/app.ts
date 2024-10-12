@@ -39,8 +39,8 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://mern-ecommerce-2024-ak.firebaseapp.com/",
+  process.env.FRONTEND_URL_1,
+  process.env.FRONTEND_URL_2,
 ];
 
 app.use(
