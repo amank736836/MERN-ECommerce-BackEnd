@@ -6,6 +6,7 @@ import { invalidateCache, reduceStock } from "../utils/features.js";
 import ErrorHandler from "../utils/utility-class.js";
 import { myCache } from "../app.js";
 import { Product } from "../models/product.js";
+import { User } from "../models/user.js";
 
 export const myOrders = TryCatch(async (req, res, next) => {
   const { id: user } = req.query;
@@ -153,18 +154,28 @@ export const processOrder = TryCatch(async (req, res, next) => {
 
 export const cancelOrder = TryCatch(async (req, res, next) => {
   const { id } = req.params;
-  const user = req.query.id;
+  const userId = req.query.id;
 
   const order = await Order.findById(id);
+
+  const user = await User.findById(userId);
 
   if (!order) {
     return next(new ErrorHandler("Order not found", 404));
   }
 
-  if (user !== order.user) {
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  if (userId !== order.user && user.role !== "admin") {
     return next(
       new ErrorHandler("You are not authorized to cancel this order", 401)
     );
+  }
+
+  if (order.status === "Delivered" || order.status === "Cancelled") {
+    return next(new ErrorHandler("You cannot cancel this order", 400));
   }
 
   order.status = "Cancelled";
@@ -202,6 +213,10 @@ export const deleteOrder = TryCatch(async (req, res, next) => {
 
   if (!order) {
     return next(new ErrorHandler("Order not found", 404));
+  }
+
+  if (order.status === "Shipped") {
+    return next(new ErrorHandler("You cannot delete this order", 400));
   }
 
   await order.deleteOne();
