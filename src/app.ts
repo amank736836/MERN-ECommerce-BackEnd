@@ -38,7 +38,10 @@ const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mern-ecommerce-2024-ak.firebaseapp.com/",
+];
 
 app.use(
   cors({
