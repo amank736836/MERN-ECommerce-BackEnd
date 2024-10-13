@@ -7,6 +7,8 @@ import {
   deleteCoupon,
   createStripePaymentIntent,
   createRazorpayPaymentIntent,
+  razorpayPaymentVerification,
+  razorpayApiKey,
 } from "../controllers/payment.js";
 
 const app = express.Router();
@@ -14,7 +16,14 @@ const app = express.Router();
 // Create payment intent - /api/v1/payment/create
 app.post("/createStripe", createStripePaymentIntent);
 
+// Create payment intent - /api/v1/payment/createRazorpay
 app.post("/createRazorpay", createRazorpayPaymentIntent);
+
+// Verify payment - /api/v1/payment/razorpayPaymentVerification
+app.post("/razorpayPaymentVerification", razorpayPaymentVerification);
+
+// Get Razorpay API key - /api/v1/payment/razorpayApiKey
+app.get("/razorpayApiKey", razorpayApiKey);
 
 // Apply discount - /api/v1/payment/discount
 app.post("/discount", applyDiscount);
