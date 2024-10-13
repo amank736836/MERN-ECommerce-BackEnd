@@ -47,6 +47,20 @@ export const createRazorpayPaymentIntent = TryCatch(async (req, res, next) => {
   });
 });
 
+export const razorpayPaymentVerification = TryCatch(async (req, res, next) => {
+  console.log(req.body + "aman");
+  res.status(200).json({
+    success: true,
+  });
+});
+
+export const razorpayApiKey = TryCatch(async (req, res, next) => {
+  return res.status(200).json({
+    success: true,
+    key_id: process.env.RAZORPAY_KEY_ID,
+  });
+});
+
 export const newCoupon = TryCatch(async (req, res, next) => {
   const { code, amount } = req.body;
 
