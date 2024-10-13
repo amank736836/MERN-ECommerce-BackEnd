@@ -20,7 +20,7 @@ app.post("/createStripe", createStripePaymentIntent);
 app.post("/createRazorpay", createRazorpayPaymentIntent);
 
 // Verify payment - /api/v1/payment/razorpayPaymentVerification
-app.post("/razorpayPaymentVerification", razorpayPaymentVerification);
+app.get("/razorpayPaymentVerification", razorpayPaymentVerification);
 
 // Get Razorpay API key - /api/v1/payment/razorpayApiKey
 app.get("/razorpayApiKey", razorpayApiKey);
