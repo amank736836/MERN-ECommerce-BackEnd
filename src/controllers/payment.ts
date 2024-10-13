@@ -52,7 +52,7 @@ export const razorpayPaymentVerification = TryCatch(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Payment successful",
-    body: req.body,
+    body: JSON.stringify(req.body),
   });
 });
 
