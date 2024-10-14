@@ -1,16 +1,16 @@
 import express from "express";
-import { adminOnly } from "../middlewares/auth.js";
 import {
-  getAllCoupons,
   applyDiscount,
-  newCoupon,
-  deleteCoupon,
-  createStripePaymentIntent,
-  createRazorpayPaymentIntent,
-  razorpayPaymentVerification,
-  razorpayApiKey,
   createPayment,
+  createRazorpayPaymentIntent,
+  createStripePaymentIntent,
+  deleteCoupon,
+  getAllCoupons,
+  newCoupon,
+  razorpayApiKey,
+  razorpayPaymentVerification,
 } from "../controllers/payment.js";
+import { adminOnly } from "../middlewares/auth.js";
 
 const app = express.Router();
 
@@ -23,8 +23,8 @@ app.post("/createRazorpay", createRazorpayPaymentIntent);
 // Verify payment - /api/v1/payment/razorpayPaymentVerification
 app.post("/razorpayPaymentVerification", razorpayPaymentVerification);
 
+// Create payment - /api/v1/payment/createPayment
 app.post("/createPayment", createPayment);
-
 
 // Get Razorpay API key - /api/v1/payment/razorpayApiKey
 app.get("/razorpayApiKey", razorpayApiKey);
