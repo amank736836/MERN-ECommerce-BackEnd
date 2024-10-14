@@ -9,6 +9,7 @@ import {
   createRazorpayPaymentIntent,
   razorpayPaymentVerification,
   razorpayApiKey,
+  createPayment,
 } from "../controllers/payment.js";
 
 const app = express.Router();
@@ -21,6 +22,9 @@ app.post("/createRazorpay", createRazorpayPaymentIntent);
 
 // Verify payment - /api/v1/payment/razorpayPaymentVerification
 app.post("/razorpayPaymentVerification", razorpayPaymentVerification);
+
+app.post("/createPayment", createPayment);
+
 
 // Get Razorpay API key - /api/v1/payment/razorpayApiKey
 app.get("/razorpayApiKey", razorpayApiKey);
