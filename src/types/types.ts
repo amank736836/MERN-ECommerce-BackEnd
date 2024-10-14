@@ -48,7 +48,6 @@ export type ControllerType = (
   next: NextFunction
 ) => Promise<void | Response<any, Record<string, any>>>;
 
-
 export type SearchRequestQuery = {
   search?: string;
   price?: string;
@@ -76,4 +75,3 @@ export type InvalidateCacheProps = {
   orderId?: string;
   productId?: string | string[];
 };
-
