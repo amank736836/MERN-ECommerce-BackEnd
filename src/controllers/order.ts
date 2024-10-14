@@ -89,7 +89,7 @@ export const newOrder = TryCatch(
     await reduceStock(orderItems);
 
     // create new order
-    await Order.create({
+    const order = await Order.create({
       shippingInfo,
       orderItems,
       user,
@@ -111,6 +111,7 @@ export const newOrder = TryCatch(
     return res.status(201).json({
       success: true,
       message: "Order placed successfully",
+      orderId: order._id,
     });
   }
 );
