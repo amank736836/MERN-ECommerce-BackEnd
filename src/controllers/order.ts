@@ -7,6 +7,7 @@ import ErrorHandler from "../utils/utility-class.js";
 import { myCache } from "../app.js";
 import { Product } from "../models/product.js";
 import { User } from "../models/user.js";
+import {Payment} from "../models/payment.js";
 
 export const myOrders = TryCatch(async (req, res, next) => {
   const { id: user } = req.query;
@@ -181,26 +182,30 @@ export const cancelOrder = TryCatch(async (req, res, next) => {
 
   order.status = "Cancelled";
 
-  await order.save();
+  const payment = await Payment.findOne({ order: order._id });
+  console.log(payment);
 
-  invalidateCache({
-    product: true,
-    order: true,
-    admin: true,
-    userId: order.user,
-    orderId: String(order._id),
-    productId: order.orderItems.map((item) => item.productId.toString()),
-  });
 
-  for (let i = 0; i < order.orderItems.length; i++) {
-    const item = order.orderItems[i];
-    const product = await Product.findById(item.productId);
-    if (!product) {
-      return next(new ErrorHandler("Product not found", 404));
-    }
-    product.stock = product.stock + item.quantity;
-    await product.save();
-  }
+  // await order.save();
+
+  // invalidateCache({
+  //   product: true,
+  //   order: true,
+  //   admin: true,
+  //   userId: order.user,
+  //   orderId: String(order._id),
+  //   productId: order.orderItems.map((item) => item.productId.toString()),
+  // });
+
+  // for (let i = 0; i < order.orderItems.length; i++) {
+  //   const item = order.orderItems[i];
+  //   const product = await Product.findById(item.productId);
+  //   if (!product) {
+  //     return next(new ErrorHandler("Product not found", 404));
+  //   }
+  //   product.stock = product.stock + item.quantity;
+  //   await product.save();
+  // }
 
   return res.status(200).json({
     success: true,
