@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { razorpay, stripe } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Coupon } from "../models/coupon.js";
-import payment from "../models/payment.js";
+import { Payment } from "../models/payment.js";
 import ErrorHandler from "../utils/utility-class.js";
 
 export const createStripePaymentIntent = TryCatch(async (req, res, next) => {
@@ -109,8 +109,7 @@ export const createPayment = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Please enter all fields", 400));
   }
 
-
-  await payment.create({
+  await Payment.create({
     order,
     user,
     paymentStatus,
