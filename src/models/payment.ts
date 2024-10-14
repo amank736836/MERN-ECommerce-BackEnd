@@ -33,4 +33,4 @@ const schema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Payment", schema);
+export const Payment =  mongoose.model("Payment", schema);
