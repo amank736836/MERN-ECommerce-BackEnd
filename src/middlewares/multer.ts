@@ -29,11 +29,11 @@ const storage = multer.diskStorage({
 export const singleUpload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    if (ext !== ".jpg" && ext !== ".jpeg" && ext !== ".png") {
-      return cb(new ErrorHandler("Only images are allowed", 400));
-    }
-    cb(null, true);
-  },
+  // fileFilter: (req, file, cb) => {
+  //   const ext = path.extname(file.originalname);
+  //   if (ext !== ".jpg" && ext !== ".jpeg" && ext !== ".png") {
+  //     return cb(new ErrorHandler("Only images are allowed", 400));
+  //   }
+  //   cb(null, true);
+  // },
 }).single("photo");
