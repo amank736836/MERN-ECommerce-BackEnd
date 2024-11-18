@@ -18,7 +18,7 @@ config({
 
 import Stripe from "stripe";
 const stripeKey = process.env.STRIPE_KEY || "";
-export const stripe = new Stripe(stripeKey);
+export const stripe = new Stripe("stripeKey");
 
 import Razorpay from "razorpay";
 import ErrorHandler from "./utils/utility-class.js";
