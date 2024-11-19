@@ -7,7 +7,11 @@ import {
   NewProductRequestBody,
   SearchRequestQuery,
 } from "../types/types.js";
-import { invalidateCache, uploadToCloudinary } from "../utils/features.js";
+import {
+  deleteFromCloudinary,
+  invalidateCache,
+  uploadToCloudinary,
+} from "../utils/features.js";
 import ErrorHandler from "../utils/utility-class.js";
 // import { faker } from "@faker-js/faker";
 
@@ -190,11 +194,10 @@ export const updateProduct = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Product not found", 404));
   }
 
-  // if (photos) {
-  //   rm(product.photos, (err) => {
-  //     console.log("Old Photo Deleted", err);
-  //   });
-  // }
+  const public_ids = product.photos.map((photo) => photo.public_id);
+
+  await deleteFromCloudinary(public_ids);
+
   if (name) product.name = name;
   if (price) product.price = price;
   if (category) product.category = category;
@@ -228,9 +231,9 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Product not found", 404));
   }
 
-  // rm(product.photos, (err) => {
-  //   console.log("Product photo Deleted", err);
-  // });
+  const public_ids = product.photos.map((photo) => photo.public_id);
+
+  await deleteFromCloudinary(public_ids);
 
   await product.deleteOne();
 
