@@ -1,15 +1,14 @@
 import { NextFunction, Request, Response } from "express";
+import { myCache } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
+import { Product } from "../models/product.js";
 import {
   BaseQuery,
   NewProductRequestBody,
   SearchRequestQuery,
 } from "../types/types.js";
-import ErrorHandler from "../utils/utility-class.js";
-import { Product } from "../models/product.js";
-import { rm } from "fs";
-import { myCache } from "../app.js";
 import { invalidateCache, uploadToCloudinary } from "../utils/features.js";
+import ErrorHandler from "../utils/utility-class.js";
 // import { faker } from "@faker-js/faker";
 
 // Revalidate on New, Update, Delete Product and New Order
@@ -23,7 +22,7 @@ export const getLatestProducts = TryCatch(async (req, res, next) => {
     myCache.set("latest-products", JSON.stringify(products));
   }
 
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     message: "Latest products",
     products,
@@ -41,7 +40,7 @@ export const getAllCategories = TryCatch(async (req, res, next) => {
     myCache.set("categories", JSON.stringify(categories));
   }
 
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     message: "All categories",
     categories,
@@ -59,7 +58,7 @@ export const getAllProducts = TryCatch(async (req, res, next) => {
     myCache.set("all-products", JSON.stringify(products));
   }
 
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     message: "All products",
     products,
@@ -80,7 +79,7 @@ export const getSingleProduct = TryCatch(async (req, res, next) => {
     myCache.set(`product-${id}`, JSON.stringify(product));
   }
 
-  return res.status(200).json({
+  res.status(200).json({
     success: true,
     message: "Product found",
     product,
@@ -126,7 +125,7 @@ export const getSearchProducts = TryCatch(
 
     const totalPage = Math.ceil(filteredOnlyProducts.length / limit);
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Filtered products",
       products,
@@ -173,7 +172,7 @@ export const newProduct = TryCatch(
 
     invalidateCache({ product: true, admin: true });
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Product created successfully",
     });
@@ -191,19 +190,24 @@ export const updateProduct = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Product not found", 404));
   }
 
-  if (photos) {
-    rm(product.photos, (err) => {
-      console.log("Old Photo Deleted", err);
-    });
-  }
+  // if (photos) {
+  //   rm(product.photos, (err) => {
+  //     console.log("Old Photo Deleted", err);
+  //   });
+  // }
   if (name) product.name = name;
   if (price) product.price = price;
   if (category) product.category = category;
   if (stock) product.stock = stock;
-  if (photos) {
-    const photosUrl = await uploadToCloudinary(photos);
-    product.photos = photosUrl;
-  }
+
+  // if (photos) {
+  //   const photosUrl = await uploadToCloudinary(photos);
+  //   // product.photos = photosUrl;
+  //   product.photos = await photosUrl.map((photo) =>
+  //     product.photos.create(photo)
+  //   );
+  //   await product.save();
+  // }
 
   await product.save();
 
@@ -224,9 +228,9 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Product not found", 404));
   }
 
-  rm(product.photos, (err) => {
-    console.log("Product photo Deleted", err);
-  });
+  // rm(product.photos, (err) => {
+  //   console.log("Product photo Deleted", err);
+  // });
 
   await product.deleteOne();
 
