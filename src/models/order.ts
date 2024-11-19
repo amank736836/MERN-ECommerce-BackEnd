@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { photosSchema } from "./product.js";
 
 const schema = new mongoose.Schema(
   {
@@ -61,10 +62,7 @@ const schema = new mongoose.Schema(
           type: String,
           required: true,
         },
-        photo: {
-          type: String,
-          required: true,
-        },
+        photos: [photosSchema],
         price: {
           type: Number,
           required: true,
