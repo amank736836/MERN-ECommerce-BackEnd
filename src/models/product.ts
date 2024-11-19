@@ -1,23 +1,23 @@
 import mongoose from "mongoose";
 
+export const photosSchema = new mongoose.Schema({
+  public_id: {
+    type: String,
+    required: [true, "Please upload product photo"],
+  },
+  url: {
+    type: String,
+    required: [true, "Please upload product url"],
+  },
+});
+
 const schema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: [true, "Please enter product name"],
     },
-    photos: [
-      {
-        public_id: {
-          type: String,
-          required: [true, "Please upload product photo"],
-        },
-        url: {
-          type: String,
-          required: [true, "Please upload product url"],
-        },
-      },
-    ],
+    photos: [photosSchema],
     price: {
       type: Number,
       required: [true, "Please enter product price"],
