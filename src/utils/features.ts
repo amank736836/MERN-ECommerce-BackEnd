@@ -1,8 +1,37 @@
+import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import mongoose, { Document } from "mongoose";
 import { myCache } from "../app.js";
 import { Product } from "../models/product.js";
 import { InvalidateCacheProps, orderItemType } from "../types/types.js";
 import ErrorHandler from "./utility-class.js";
+
+const getBase64 = (file: Express.Multer.File): string =>
+  `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+
+export const uploadToCloudinary = async (
+  files: Express.Multer.File[]
+): Promise<{ public_id: string; url: string }[]> => {
+  try {
+    const uploadPromises = files.map(async (file) => {
+      const base64File = getBase64(file);
+      const result: UploadApiResponse = await cloudinary.uploader.upload(
+        base64File
+      );
+      return {
+        public_id: result.public_id,
+        url: result.secure_url,
+      };
+    });
+
+    const uploadedFiles = await Promise.all(uploadPromises);
+    return uploadedFiles;
+  } catch (error) {
+    throw new ErrorHandler(
+      `Cloudinary upload failed: ${(error as Error).message}`,
+      500
+    );
+  }
+};
 
 export const connectDB = (uri: string) => {
   mongoose
