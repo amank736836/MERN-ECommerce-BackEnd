@@ -26,7 +26,7 @@ export type shippingInfoType = {
 
 export type orderItemType = {
   name: string;
-  photo: string;
+  photos: [{ public_id: string; url: string }];
   price: number;
   quantity: number;
   productId: string;
