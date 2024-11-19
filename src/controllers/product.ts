@@ -129,11 +129,17 @@ export const getSearchProducts = TryCatch(
 
     const totalPage = Math.ceil(filteredOnlyProducts.length / limit);
 
+    // minAmount and maxAmount
+    const minAmount = Math.min(...filteredOnlyProducts.map((p) => p.price));
+    const maxAmount = Math.max(...filteredOnlyProducts.map((p) => p.price));
+
     res.status(200).json({
       success: true,
       message: "Filtered products",
       products,
       totalPage,
+      minAmount,
+      maxAmount,
       categories: filteredOnlyProductsCategories,
     });
   }
