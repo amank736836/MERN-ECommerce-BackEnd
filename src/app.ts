@@ -1,27 +1,35 @@
+// Importing Dependencies
+import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
 import { config } from "dotenv";
 import express from "express";
 import morgan from "morgan";
 import NodeCache from "node-cache";
-import { errorMiddleware } from "./middlewares/error.js";
+
+// Importing Middlewares
+
+// Importing Utils
+import { connectDB } from "./utils/features.js";
+import ErrorHandler from "./utils/utility-class.js";
+
+// Importing Routes
 import NotFound from "./routes/notFound.js";
 import orderRoutes from "./routes/order.js";
 import paymentRoutes from "./routes/payment.js";
 import productRoutes from "./routes/product.js";
 import dashboardRoute from "./routes/stats.js";
 import userRoutes from "./routes/user.js";
-import { connectDB } from "./utils/features.js";
+
+// Importing Payment Gateways
+import Razorpay from "razorpay";
+import { errorMiddleware } from "./middlewares/error.js";
 
 config({
   path: "./.env",
 });
 
-import Stripe from "stripe";
-const stripeKey = process.env.STRIPE_KEY || "";
-export const stripe = new Stripe("stripeKey");
+export const myCache = new NodeCache();
 
-import Razorpay from "razorpay";
-import ErrorHandler from "./utils/utility-class.js";
 export const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || "",
   key_secret: process.env.RAZORPAY_KEY_SECRET || "",
@@ -32,9 +40,14 @@ const MONGO_URI = process.env.MONGO_URI || "";
 
 connectDB(MONGO_URI);
 
-export const myCache = new NodeCache();
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
+
 app.use(express.json());
 app.use(morgan("dev"));
 
@@ -69,7 +82,7 @@ app.get("/", (req, res) => {
   res.send("API is running....");
 });
 
-// USing Routes
+// Using Routes
 app.use("/api/v1/user", userRoutes);
 
 app.use("/api/v1/product", productRoutes);
@@ -80,10 +93,9 @@ app.use("/api/v1/payment", paymentRoutes);
 
 app.use("/api/v1/dashboard", dashboardRoute);
 
-app.use("/uploads", express.static("uploads"));
-app.use(errorMiddleware);
-
 app.use("*", NotFound);
+
+app.use(errorMiddleware);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
