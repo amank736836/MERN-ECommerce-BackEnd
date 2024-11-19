@@ -33,6 +33,21 @@ export const uploadToCloudinary = async (
   }
 };
 
+export const deleteFromCloudinary = async (publicIds: string[]) => {
+  try {
+    const deletePromises = publicIds.map(async (id) => {
+      await cloudinary.uploader.destroy(id);
+    });
+
+    await Promise.all(deletePromises);
+  } catch (error) {
+    throw new ErrorHandler(
+      `Cloudinary delete failed: ${(error as Error).message}`,
+      500
+    );
+  }
+};
+
 export const connectDB = (uri: string) => {
   mongoose
     .connect(uri, {
