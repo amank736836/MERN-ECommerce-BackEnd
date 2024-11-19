@@ -3,7 +3,6 @@ import {
   applyDiscount,
   createPayment,
   createRazorpayPaymentIntent,
-  createStripePaymentIntent,
   deleteCoupon,
   getAllCoupons,
   newCoupon,
@@ -13,9 +12,6 @@ import {
 import { adminOnly } from "../middlewares/auth.js";
 
 const app = express.Router();
-
-// Create payment intent - /api/v1/payment/create
-app.post("/createStripe", createStripePaymentIntent);
 
 // Create payment intent - /api/v1/payment/createRazorpay
 app.post("/createRazorpay", createRazorpayPaymentIntent);
