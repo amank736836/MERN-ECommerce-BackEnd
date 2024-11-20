@@ -129,7 +129,6 @@ export const getSearchProducts = TryCatch(
 
     const totalPage = Math.ceil(filteredOnlyProducts.length / limit);
 
-    // minAmount and maxAmount
     const minAmount = Math.min(...filteredOnlyProducts.map((p) => p.price));
     const maxAmount = Math.max(...filteredOnlyProducts.map((p) => p.price));
 
@@ -159,7 +158,7 @@ export const newProduct = TryCatch(
 
     if (photos.length < 1 || photos.length > 7) {
       return next(
-        new ErrorHandler("Please upload atleast 1 and atmost 5 photos", 400)
+        new ErrorHandler("Please upload atleast 1 and atmost 7 photos", 400)
       );
     }
 
@@ -207,9 +206,7 @@ export const updateProduct = TryCatch(async (req, res, next) => {
 
   if (photos && photos.length > 0) {
     if (photos.length > 7) {
-      return next(
-        new ErrorHandler("Please upload atmost 5 photos", 400)
-      );
+      return next(new ErrorHandler("Please upload atmost 7 photos", 400));
     }
     const photosUrl = await uploadToCloudinary(photos);
     const public_ids = product.photos.map((photo) => photo.public_id);
