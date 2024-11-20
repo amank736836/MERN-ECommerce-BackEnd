@@ -157,7 +157,7 @@ export const newProduct = TryCatch(
       return next(new ErrorHandler("Please upload product photos", 400));
     }
 
-    if (photos.length < 1 || photos.length > 5) {
+    if (photos.length < 1 || photos.length > 7) {
       return next(
         new ErrorHandler("Please upload atleast 1 and atmost 5 photos", 400)
       );
@@ -206,7 +206,7 @@ export const updateProduct = TryCatch(async (req, res, next) => {
   if (stock) product.stock = stock;
 
   if (photos && photos.length > 0) {
-    if (photos.length > 5) {
+    if (photos.length > 7) {
       return next(
         new ErrorHandler("Please upload atmost 5 photos", 400)
       );
