@@ -200,23 +200,22 @@ export const updateProduct = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Product not found", 404));
   }
 
-  const public_ids = product.photos.map((photo) => photo.public_id);
-
-  await deleteFromCloudinary(public_ids);
-
   if (name) product.name = name;
   if (price) product.price = price;
   if (category) product.category = category;
   if (stock) product.stock = stock;
 
-  // if (photos) {
-  //   const photosUrl = await uploadToCloudinary(photos);
-  //   // product.photos = photosUrl;
-  //   product.photos = await photosUrl.map((photo) =>
-  //     product.photos.create(photo)
-  //   );
-  //   await product.save();
-  // }
+  if (photos && photos.length > 0) {
+    if (photos.length > 5) {
+      return next(
+        new ErrorHandler("Please upload atmost 5 photos", 400)
+      );
+    }
+    const photosUrl = await uploadToCloudinary(photos);
+    const public_ids = product.photos.map((photo) => photo.public_id);
+    await deleteFromCloudinary(public_ids);
+    product.photos = photosUrl as any;
+  }
 
   await product.save();
 
