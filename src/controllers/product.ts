@@ -150,7 +150,7 @@ export const newProduct = TryCatch(
     res: Response,
     next: NextFunction
   ) => {
-    const { name, price, category, stock } = req.body;
+    const { name, price, category, stock, description } = req.body;
     const photos = req.files as Express.Multer.File[];
     if (!photos) {
       return next(new ErrorHandler("Please upload product photos", 400));
@@ -162,11 +162,9 @@ export const newProduct = TryCatch(
       );
     }
 
-    if (!name || !price || !category || !stock) {
+    if (!name || !price || !category || !stock || !description) {
       return next(new ErrorHandler("Please fill all the fields", 400));
     }
-
-    console.log("All fields accepted");
 
     // Upload on cloudinary
     const photosUrl = await uploadToCloudinary(photos);
@@ -174,6 +172,7 @@ export const newProduct = TryCatch(
     await Product.create({
       name,
       price,
+      description,
       category: category.toLowerCase(),
       stock,
       photos: photosUrl,
@@ -190,7 +189,7 @@ export const newProduct = TryCatch(
 
 export const updateProduct = TryCatch(async (req, res, next) => {
   const { id } = req.params;
-  const { name, price, category, stock } = req.body;
+  const { name, price, category, stock, description } = req.body;
   const photos = req.files as Express.Multer.File[];
 
   const product = await Product.findById(id);
@@ -203,6 +202,7 @@ export const updateProduct = TryCatch(async (req, res, next) => {
   if (price) product.price = price;
   if (category) product.category = category;
   if (stock) product.stock = stock;
+  if (description) product.description = description;
 
   if (photos && photos.length > 0) {
     if (photos.length > 7) {
