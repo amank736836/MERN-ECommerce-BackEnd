@@ -14,6 +14,7 @@ export interface NewProductRequestBody {
   price: number;
   category: string;
   stock: number;
+  description: string;
 }
 
 export type shippingInfoType = {
