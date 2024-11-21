@@ -24,6 +24,7 @@ export const createRazorpayPaymentIntent = TryCatch(async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
+      message: "Razorpay order created successfully",
       id: order.id,
       currency: order.currency,
       amount: order.amount,
@@ -146,6 +147,7 @@ export const getAllCoupons = TryCatch(async (req, res, next) => {
 
   return res.status(200).json({
     success: true,
+    message: "All coupons fetched successfully",
     count: coupons.length,
     coupons,
   });
