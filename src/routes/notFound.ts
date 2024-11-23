@@ -3,6 +3,7 @@ import notFound from "../controllers/notFound.js";
 
 const app = express.Router();
 
+// Handle all other routes
 app
   .route("*")
   .get(notFound)
