@@ -33,7 +33,7 @@ app.get("/admin-products", adminOnly, getAllProducts);
 app
   .route("/:id")
   .get(getSingleProduct)
-  .put(adminOnly, multiUpload(), updateProduct)
-  .delete(adminOnly, deleteProduct);
+  .delete(adminOnly, deleteProduct)
+  .put(adminOnly, multiUpload(), updateProduct);
 
 export default app;
