@@ -6,7 +6,7 @@ import {
   getSingleOrder,
   myOrders,
   newOrder,
-  processOrder
+  processOrder,
 } from "../controllers/order.js";
 import { adminOnly } from "../middlewares/auth.js";
 
@@ -21,7 +21,7 @@ app.get("/my", myOrders);
 // Get All Orders - /api/v1/orders
 app.get("/all", adminOnly, getAllOrders);
 
-// Get Single Order - /api/v1/order/:id
+// Get, Process, Delete, and Cancel Order - /api/v1/order/:id
 app
   .route("/:id")
   .get(getSingleOrder)
