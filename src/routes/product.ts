@@ -29,7 +29,7 @@ app.get("/categories", getAllCategories);
 // Get All Products - /api/v1/product/admin-products
 app.get("/admin-products", adminOnly, getAllProducts);
 
-// Get Single Product - /api/v1/product/:id
+// Get, Update, and Delete Product - /api/v1/product/:id
 app
   .route("/:id")
   .get(getSingleProduct)
