@@ -37,6 +37,10 @@ app.post("/coupon/new", adminOnly, newCoupon);
 app.get("/coupon/all", adminOnly, getAllCoupons);
 
 // Get, delete, and update a coupon - /api/v1/payment/coupon/:id
-app.route("/coupon/:id").get(getCoupon).delete(deleteCoupon).put(updateCoupon);
+app
+  .route("/coupon/:id")
+  .get(adminOnly, getCoupon)
+  .delete(adminOnly, deleteCoupon)
+  .put(adminOnly, updateCoupon);
 
 export default app;
