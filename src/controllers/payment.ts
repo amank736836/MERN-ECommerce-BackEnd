@@ -107,21 +107,6 @@ export const createPayment = TryCatch(async (req, res, next) => {
   });
 });
 
-export const newCoupon = TryCatch(async (req, res, next) => {
-  const { code, amount } = req.body;
-
-  if (!code || !amount) {
-    return next(new ErrorHandler("Please enter both coupon and amount", 400));
-  }
-
-  await Coupon.create({ code, amount });
-
-  return res.status(201).json({
-    success: true,
-    message: `Coupon ${code} created successfully`,
-  });
-});
-
 export const applyDiscount = TryCatch(async (req, res, next) => {
   const { coupon } = req.query;
 
@@ -150,6 +135,92 @@ export const getAllCoupons = TryCatch(async (req, res, next) => {
     message: "All coupons fetched successfully",
     count: coupons.length,
     coupons,
+  });
+});
+
+export const getCoupon = TryCatch(async (req, res, next) => {
+  const { id } = req.params;
+
+  const coupon = await Coupon.findById(id);
+
+  if (!coupon) {
+    return next(new ErrorHandler("Coupon not found", 404));
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: `Coupon ${coupon.code} fetched successfully`,
+    coupon,
+  });
+});
+
+export const newCoupon = TryCatch(async (req, res, next) => {
+  const {
+    code,
+    amount,
+    size,
+    prefix,
+    postfix,
+    includeNumbers,
+    includeCharacters,
+    includeSymbols,
+  } = req.body;
+
+  if (!code || !amount) {
+    return next(new ErrorHandler("Please enter both coupon and amount", 400));
+  }
+
+  await Coupon.create({
+    code,
+    amount,
+    size,
+    prefix,
+    postfix,
+    includeNumbers,
+    includeCharacters,
+    includeSymbols,
+  });
+
+  return res.status(201).json({
+    success: true,
+    message: `Coupon ${code} created successfully`,
+  });
+});
+
+export const updateCoupon = TryCatch(async (req, res, next) => {
+  const { id } = req.params;
+
+  const coupon = await Coupon.findById(id);
+
+  if (!coupon) {
+    return next(new ErrorHandler("Coupon not found", 404));
+  }
+
+  const {
+    code,
+    amount,
+    size,
+    prefix,
+    postfix,
+    includeNumbers,
+    includeCharacters,
+    includeSymbols,
+  } = req.body;
+
+  if (code) coupon.code = code;
+  if (amount) coupon.amount = amount;
+  if (size) coupon.size = size;
+  if (prefix) coupon.prefix = prefix;
+  if (postfix) coupon.postfix = postfix;
+  if (includeNumbers) coupon.includeNumbers = includeNumbers;
+  if (includeCharacters) coupon.includeCharacters = includeCharacters;
+  if (includeSymbols) coupon.includeSymbols = includeSymbols;
+
+  await coupon.save();
+
+  return res.status(200).json({
+    success: true,
+    message: `Coupon ${coupon.code} updated successfully`,
   });
 });
 
