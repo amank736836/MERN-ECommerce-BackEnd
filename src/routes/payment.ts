@@ -5,9 +5,11 @@ import {
   createRazorpayPaymentIntent,
   deleteCoupon,
   getAllCoupons,
+  getCoupon,
   newCoupon,
   razorpayApiKey,
   razorpayPaymentVerification,
+  updateCoupon,
 } from "../controllers/payment.js";
 import { adminOnly } from "../middlewares/auth.js";
 
@@ -34,7 +36,13 @@ app.post("/coupon/new", adminOnly, newCoupon);
 // Get all coupons - /api/v1/payment/coupon/all
 app.get("/coupon/all", adminOnly, getAllCoupons);
 
+// Get a coupon - /api/v1/payment/coupon/:id
+app.get("/coupon/:id", adminOnly, getCoupon);
+
 // Delete a coupon - /api/v1/payment/coupon/:id
 app.delete("/coupon/:id", adminOnly, deleteCoupon);
+
+// Update a coupon - /api/v1/payment/coupon/:id
+app.put("/coupon/:id", adminOnly, updateCoupon);
 
 export default app;
