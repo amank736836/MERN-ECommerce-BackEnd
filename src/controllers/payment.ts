@@ -211,14 +211,17 @@ export const updateCoupon = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Please enter both coupon and amount", 400));
   }
 
-  coupon.code = code;
-  coupon.amount = amount;
-  coupon.size = size;
-  coupon.prefix = prefix;
-  coupon.postfix = postfix;
-  coupon.includeNumbers = includeNumbers;
-  coupon.includeCharacters = includeCharacters;
-  coupon.includeSymbols = includeSymbols;
+  if (coupon.code !== code) coupon.code = code;
+  if (coupon.amount !== amount) coupon.amount = amount;
+  if (coupon.size !== size) coupon.size = size;
+  if (coupon.prefix !== prefix) coupon.prefix = prefix;
+  if (coupon.postfix !== postfix) coupon.postfix = postfix;
+  if (coupon.includeNumbers !== includeNumbers)
+    coupon.includeNumbers = includeNumbers;
+  if (coupon.includeCharacters !== includeCharacters)
+    coupon.includeCharacters = includeCharacters;
+  if (coupon.includeSymbols !== includeSymbols)
+    coupon.includeSymbols = includeSymbols;
 
   await coupon.save();
 
