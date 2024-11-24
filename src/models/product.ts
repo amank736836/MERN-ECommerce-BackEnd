@@ -39,6 +39,18 @@ const schema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    review: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Review",
+    },
+    numOfReviews: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
