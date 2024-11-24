@@ -8,7 +8,7 @@ const schema = new mongoose.Schema(
       required: true,
     },
     order: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
       required: true,
     },
@@ -33,4 +33,4 @@ const schema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Payment =  mongoose.model("Payment", schema);
+export const Payment = mongoose.model("Payment", schema);
