@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { myCache } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Product } from "../models/product.js";
+import { Review } from "../models/review.js";
+import { User } from "../models/user.js";
 import {
   BaseQuery,
   NewProductRequestBody,
@@ -244,6 +246,115 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
   return res.status(200).json({
     success: true,
     message: "Product deleted successfully",
+  });
+});
+
+export const newReview = TryCatch(async (req, res, next) => {
+  const user = await User.findById(req.query.id);
+  if (!user) {
+    return next(new ErrorHandler("Please login to review the product", 401));
+  }
+
+  const productId = req.params.id;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    return next(new ErrorHandler("Product not found", 404));
+  }
+
+  const { rating, comment } = req.body;
+
+  if (!rating || !comment) {
+    return next(new ErrorHandler("Please fill all the fields", 400));
+  }
+
+  console.log(user._id, product._id);
+
+  let review = await Review.findOne({ user: user._id, product: product._id });
+
+  if (review) {
+    review.rating = rating;
+    review.comment = comment;
+    product.ratings = product.ratings - review.rating + rating;
+    product.averageRating = Math.floor(product.ratings / product.numOfReviews);
+    await review.save();
+  } else {
+    review = await Review.create({
+      user: user._id,
+      product: product._id,
+      rating,
+      comment,
+    });
+    product.ratings = product.ratings + rating;
+    product.numOfReviews = product.numOfReviews + 1;
+    product.averageRating = Math.floor(product.ratings / product.numOfReviews);
+  }
+
+  await product.save();
+
+  invalidateCache({ product: true, productId: productId, admin: true });
+
+  return res.status(201).json({
+    success: true,
+    message: "Review posted successfully",
+  });
+});
+
+export const deleteReview = TryCatch(async (req, res, next) => {
+  const user = req.query.id;
+  const isAuthentic = await User.findById(user);
+
+  if (!isAuthentic) {
+    return next(new ErrorHandler("Please login to delete the review", 401));
+  }
+
+  const productId = req.params.id;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    return next(new ErrorHandler("Product not found", 404));
+  }
+
+  const review = await Review.findOne({
+    user: isAuthentic._id,
+    product: product._id,
+  });
+
+  if (!review) {
+    return next(new ErrorHandler("Review not found", 404));
+  }
+
+  if (
+    isAuthentic &&
+    isAuthentic.role !== "admin" &&
+    review.user.toString() !== user
+  ) {
+    return next(
+      new ErrorHandler("You are not authorised to delete this review", 401)
+    );
+  }
+
+  await review.deleteOne();
+
+  // await setRatingInProduct(productId);
+
+  product.ratings = product.ratings - review.rating;
+  product.numOfReviews = product.numOfReviews - 1;
+  if (product.numOfReviews === 0) {
+    product.averageRating = 0;
+  } else {
+    product.averageRating = Math.floor(product.ratings / product.numOfReviews);
+  }
+
+  await product.save();
+
+  invalidateCache({ product: true, productId: productId, admin: true });
+
+  return res.status(200).json({
+    success: true,
+    message: "Review deleted successfully",
   });
 });
 
