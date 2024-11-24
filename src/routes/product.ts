@@ -1,16 +1,18 @@
 import express from "express";
 import {
   deleteProduct,
+  deleteReview,
   getAllCategories,
   getAllProducts,
   getLatestProducts,
   getSearchProducts,
   getSingleProduct,
   newProduct,
+  newReview,
   updateProduct,
 } from "../controllers/product.js";
 import { adminOnly } from "../middlewares/auth.js";
-import { multiUpload, singleUpload } from "../middlewares/multer.js";
+import { multiUpload } from "../middlewares/multer.js";
 
 const app = express.Router();
 
@@ -35,5 +37,8 @@ app
   .get(getSingleProduct)
   .delete(adminOnly, deleteProduct)
   .put(adminOnly, multiUpload(), updateProduct);
+
+// Create New Review and Delete Review - /api/v1/product/review/:id
+app.route("/review/:id").post(newReview).delete(deleteReview);
 
 export default app;
