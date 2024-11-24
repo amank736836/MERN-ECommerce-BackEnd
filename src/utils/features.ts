@@ -4,6 +4,28 @@ import { myCache } from "../app.js";
 import { Product } from "../models/product.js";
 import { InvalidateCacheProps, orderItemType } from "../types/types.js";
 import ErrorHandler from "./utility-class.js";
+import { Review } from "../models/review.js";
+
+export const setRatingInProduct = async (productId: string) => {
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new ErrorHandler("Product not found", 404);
+  }
+
+  const reviews = await Review.find({ product: productId });
+  if (reviews.length === 0) {
+    product.ratings = 0;
+    product.numOfReviews = 0;
+    product.averageRating = 0;
+  } else {
+    const total = reviews.reduce((acc, item) => item.rating + acc, 0);
+    product.ratings = total;
+    product.numOfReviews = reviews.length;
+    product.averageRating = total / reviews.length;
+  }
+
+  await product.save();
+};
 
 const getBase64 = (file: Express.Multer.File): string =>
   `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
