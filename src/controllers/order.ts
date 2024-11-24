@@ -221,6 +221,13 @@ export const deleteOrder = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("You cannot delete this order", 400));
   }
 
+  const payment = await Payment.findOne({ order: order._id });
+
+  if (!payment) {
+    return next(new ErrorHandler("Payment not found", 404));
+  }
+
+  await payment.deleteOne();
   await order.deleteOne();
 
   invalidateCache({
