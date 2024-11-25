@@ -37,7 +37,10 @@ export const uploadToCloudinary = async (
     const uploadPromises = files.map(async (file) => {
       const base64File = getBase64(file);
       const result: UploadApiResponse = await cloudinary.uploader.upload(
-        base64File
+        base64File,
+        {
+          folder: "ecommerce",
+        }
       );
       return {
         public_id: result.public_id,
