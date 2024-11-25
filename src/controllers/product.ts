@@ -256,30 +256,25 @@ export const newReview = TryCatch(async (req, res, next) => {
   }
 
   const productId = req.params.id;
-
   const product = await Product.findById(productId);
-
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));
   }
 
   const { rating, comment } = req.body;
-
   if (!rating || !comment) {
     return next(new ErrorHandler("Please fill all the fields", 400));
   }
-
   if (rating < 1 || rating > 5) {
     return next(new ErrorHandler("Rating must be between 1 and 5", 400));
   }
 
-  let review = await Review.findOne({ user: user._id, product: product._id });
-
+  let review = await Review.findOne({ product: product._id });
   if (review) {
-    review.rating = rating;
-    review.comment = comment;
     product.ratings = product.ratings - review.rating + rating;
     product.averageRating = Math.floor(product.ratings / product.numOfReviews);
+    review.rating = rating;
+    review.comment = comment;
     await review.save();
   } else {
     review = await Review.create({
@@ -346,6 +341,7 @@ export const deleteReview = TryCatch(async (req, res, next) => {
   product.numOfReviews = product.numOfReviews - 1;
   if (product.numOfReviews === 0) {
     product.averageRating = 0;
+    product.ratings = 0;
   } else {
     product.averageRating = Math.floor(product.ratings / product.numOfReviews);
   }
