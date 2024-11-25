@@ -269,7 +269,9 @@ export const newReview = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Please fill all the fields", 400));
   }
 
-  console.log(user._id, product._id);
+  if (rating < 1 || rating > 5) {
+    return next(new ErrorHandler("Rating must be between 1 and 5", 400));
+  }
 
   let review = await Review.findOne({ user: user._id, product: product._id });
 
