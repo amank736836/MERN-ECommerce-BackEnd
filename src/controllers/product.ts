@@ -249,6 +249,21 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
   });
 });
 
+export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
+  const productId = req.params.id;
+
+  const reviews = await Review.find({ product: productId })
+    .populate({ path: "user", select: "name photo" })
+    .sort({ updatedAt: -1 })
+    .sort({ createdAt: -1 });
+
+  return res.status(201).json({
+    success: true,
+    message: "All reviews fetched successfully",
+    reviews,
+  });
+});
+
 export const newReview = TryCatch(async (req, res, next) => {
   const user = await User.findById(req.query.id);
   if (!user) {
@@ -299,22 +314,6 @@ export const newReview = TryCatch(async (req, res, next) => {
   return res.status(201).json({
     success: true,
     message: "Review posted successfully",
-  });
-});
-
-export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
-  const productId = req.params.id;
-
-  const reviews = await Review.find({ product: productId })
-    .populate({ path: "user", select: "name photo" })
-    // .populate({ path: "product", select: "name" })
-    .sort({ updatedAt: -1 })
-    .sort({ createdAt: -1 });
-
-  return res.status(201).json({
-    success: true,
-    message: "All reviews fetched successfully",
-    reviews,
   });
 });
 
