@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  allReviewsOfProduct,
   deleteProduct,
   deleteReview,
   getAllCategories,
@@ -38,7 +39,11 @@ app
   .delete(adminOnly, deleteProduct)
   .put(adminOnly, multiUpload(), updateProduct);
 
-// Create New Review and Delete Review - /api/v1/product/review/:id
-app.route("/review/:id").post(newReview).delete(deleteReview);
+// Get All Reviews of a Product, Create New Review, and Delete Review - /api/v1/product/review/:id
+app
+  .route("/review/:id")
+  .get(allReviewsOfProduct)
+  .post(newReview)
+  .delete(deleteReview);
 
 export default app;
