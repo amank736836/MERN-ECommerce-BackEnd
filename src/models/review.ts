@@ -4,7 +4,7 @@ const schema = new mongoose.Schema(
   {
     comment: {
       type: String,
-      maxLength: [750, "Comment can not be more than 750 characters"],
+      maxLength: [800, "Comment can not be more than 750 characters"],
     },
     rating: {
       type: Number,
