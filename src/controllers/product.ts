@@ -269,7 +269,11 @@ export const newReview = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Rating must be between 1 and 5", 400));
   }
 
-  let review = await Review.findOne({ product: product._id });
+  let review = await Review.findOne({
+    user: user._id,
+    product: product._id,
+  });
+
   if (review) {
     product.ratings = product.ratings - review.rating + rating;
     product.averageRating = Math.floor(product.ratings / product.numOfReviews);
@@ -295,6 +299,22 @@ export const newReview = TryCatch(async (req, res, next) => {
   return res.status(201).json({
     success: true,
     message: "Review posted successfully",
+  });
+});
+
+export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
+  const productId = req.params.id;
+
+  const reviews = await Review.find({ product: productId })
+    .populate({ path: "user", select: "name photo" })
+    // .populate({ path: "product", select: "name" })
+    .sort({ updatedAt: -1 })
+    .sort({ createdAt: -1 });
+
+  return res.status(201).json({
+    success: true,
+    message: "All reviews fetched successfully",
+    reviews,
   });
 });
 
