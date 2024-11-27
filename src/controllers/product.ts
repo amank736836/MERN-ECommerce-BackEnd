@@ -15,6 +15,7 @@ import {
   uploadToCloudinary,
 } from "../utils/features.js";
 import ErrorHandler from "../utils/utility-class.js";
+import { Order } from "../models/order.js";
 // import { faker } from "@faker-js/faker";
 
 // Revalidate on New, Update, Delete Product and New Order
@@ -252,6 +253,13 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
 export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
   const productId = req.params.id;
 
+  const { id: userId } = req.query;
+
+  const order = await Order.find({
+    user: userId,
+    orderItems: { $elemMatch: { productId: productId } },
+  });
+
   const reviews = await Review.find({ product: productId })
     .populate({ path: "user", select: "name photo" })
     .sort({ updatedAt: -1 })
@@ -261,6 +269,7 @@ export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
     success: true,
     message: "All reviews fetched successfully",
     reviews,
+    reviewButton: order.length > 0 ? false : true,
   });
 });
 
