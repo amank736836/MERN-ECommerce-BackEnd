@@ -265,8 +265,6 @@ export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
     .sort({ updatedAt: -1 })
     .sort({ createdAt: -1 });
 
-  console.log(order);
-
   return res.status(201).json({
     success: true,
     message: "All reviews fetched successfully",
