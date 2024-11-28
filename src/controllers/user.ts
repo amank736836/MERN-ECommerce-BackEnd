@@ -3,6 +3,63 @@ import { User } from "../models/user.js";
 import { NewUserRequestBody } from "../types/types.js";
 import ErrorHandler from "../utils/utility-class.js";
 import { TryCatch } from "../middlewares/error.js";
+import { redis } from "../app.js";
+import { invalidateCache } from "../utils/features.js";
+
+export const getAllUsers = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let key = `all-users`;
+
+    let users = [];
+
+    const cachedData = await redis.get(key);
+
+    if (cachedData) {
+      users = JSON.parse(cachedData);
+    } else {
+      users = await User.find();
+      await redis.set(key, JSON.stringify(users));
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "All users",
+      users,
+    });
+  }
+);
+
+export const getUserById = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let id = req.params.id;
+
+    if (!id) {
+      return next(new ErrorHandler("Please enter a user id", 400));
+    }
+
+    let key = `user-${id}`;
+
+    let user;
+
+    const cachedData = await redis.get(key);
+
+    if (cachedData) {
+      user = JSON.parse(cachedData);
+    } else {
+      user = await User.findById(id);
+      if (!user) {
+        return next(new ErrorHandler("User not found", 400));
+      }
+      await redis.set(key, JSON.stringify(user));
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User found successfully",
+      user,
+    });
+  }
+);
 
 export const newUser = TryCatch(
   async (
@@ -34,36 +91,14 @@ export const newUser = TryCatch(
       dob,
     });
 
+    invalidateCache({
+      user: true,
+      admin: true,
+    });
+
     return res.status(201).json({
       success: true,
       message: `Welcome, ${user.name}`,
-    });
-  }
-);
-
-export const getAllUsers = TryCatch(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const users = await User.find();
-
-    return res.status(200).json({
-      success: true,
-      message: "All users",
-      users,
-    });
-  }
-);
-
-export const getUserById = TryCatch(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return next(new ErrorHandler("User not found", 400));
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "User found successfully",
-      user,
     });
   }
 );
@@ -76,6 +111,12 @@ export const deleteUser = TryCatch(
     }
 
     await user.deleteOne();
+
+    invalidateCache({
+      admin: true,
+      user: true,
+      userId: req.params.id,
+    });
 
     return res.status(200).json({
       success: true,
