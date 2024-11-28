@@ -1,11 +1,11 @@
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
+import { Redis } from "ioredis";
 import mongoose, { Document } from "mongoose";
-import { myCache, redis } from "../app.js";
+import { redis } from "../app.js";
 import { Product } from "../models/product.js";
+import { Review } from "../models/review.js";
 import { InvalidateCacheProps, orderItemType } from "../types/types.js";
 import ErrorHandler from "./utility-class.js";
-import { Review } from "../models/review.js";
-import { Redis } from "ioredis";
 
 export const setRatingInProduct = async (productId: string) => {
   const product = await Product.findById(productId);
