@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { myCache } from "../app.js";
+import { myCache, redis } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
+import { Order } from "../models/order.js";
 import { Product } from "../models/product.js";
 import { Review } from "../models/review.js";
 import { User } from "../models/user.js";
@@ -15,18 +16,20 @@ import {
   uploadToCloudinary,
 } from "../utils/features.js";
 import ErrorHandler from "../utils/utility-class.js";
-import { Order } from "../models/order.js";
 // import { faker } from "@faker-js/faker";
 
 // Revalidate on New, Update, Delete Product and New Order
 export const getLatestProducts = TryCatch(async (req, res, next) => {
-  let products;
+  const key = "latest-products";
 
-  if (myCache.has("latest-products")) {
-    products = JSON.parse(myCache.get("latest-products") as string);
+  let products;
+  products = await redis.get(key);
+
+  if (products) {
+    products = JSON.parse(products);
   } else {
     products = await Product.find().sort({ createdAt: -1 }).limit(5);
-    myCache.set("latest-products", JSON.stringify(products));
+    await redis.set(key, JSON.stringify(products));
   }
 
   res.status(200).json({
@@ -38,13 +41,16 @@ export const getLatestProducts = TryCatch(async (req, res, next) => {
 
 // Revalidate on New, Update, Delete Product and New Order
 export const getAllCategories = TryCatch(async (req, res, next) => {
-  let categories;
+  const key = "categories";
 
-  if (myCache.has("categories")) {
-    categories = JSON.parse(myCache.get("categories") as string);
+  let categories;
+  categories = await redis.get(key);
+
+  if (categories) {
+    categories = JSON.parse(categories);
   } else {
     categories = await Product.distinct("category");
-    myCache.set("categories", JSON.stringify(categories));
+    await redis.set("categories", JSON.stringify(categories));
   }
 
   res.status(200).json({
@@ -56,13 +62,16 @@ export const getAllCategories = TryCatch(async (req, res, next) => {
 
 // Revalidate on New, Update, Delete Product and New Order
 export const getAllProducts = TryCatch(async (req, res, next) => {
-  let products;
+  const key = "all-products";
 
-  if (myCache.has("all-products")) {
-    products = JSON.parse(myCache.get("all-products") as string);
+  let products;
+  products = await redis.get(key);
+
+  if (products) {
+    products = JSON.parse(products);
   } else {
     products = await Product.find();
-    myCache.set("all-products", JSON.stringify(products));
+    await redis.set("all-products", JSON.stringify(products));
   }
 
   res.status(200).json({
@@ -73,17 +82,20 @@ export const getAllProducts = TryCatch(async (req, res, next) => {
 });
 
 export const getSingleProduct = TryCatch(async (req, res, next) => {
-  let product;
   const { id } = req.params;
+  const key = `product-${id}`;
 
-  if (myCache.has(`product-${id}`)) {
-    product = JSON.parse(myCache.get(`product-${id}`) as string);
+  let product;
+  product = await redis.get(key);
+
+  if (product) {
+    product = JSON.parse(product);
   } else {
     product = await Product.findById(id);
     if (!product) {
       return next(new ErrorHandler("Product not found", 404));
     }
-    myCache.set(`product-${id}`, JSON.stringify(product));
+    await redis.set(`product-${id}`, JSON.stringify(product));
   }
 
   res.status(200).json({
@@ -96,7 +108,6 @@ export const getSingleProduct = TryCatch(async (req, res, next) => {
 export const getSearchProducts = TryCatch(
   async (req: Request<{}, {}, {}, SearchRequestQuery>, res, next) => {
     const { search, sort, category, price } = req.query;
-
     const page = Number(req.query.page) || 1;
     const limit = Number(process.env.PRODUCT_PER_PAGE) || 8;
     const skip = limit * (page - 1);
@@ -146,6 +157,41 @@ export const getSearchProducts = TryCatch(
     });
   }
 );
+
+export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
+  const productId = req.params.id;
+  const { id: userId } = req.query;
+
+  const key = `reviews-${productId}-${userId}`;
+  let reviews;
+  let reviewButton;
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    const { reviews: dataReviews, reviewButton: dataReviewButton } =
+      JSON.parse(cachedData);
+    reviews = dataReviews;
+    reviewButton = dataReviewButton;
+  } else {
+    reviews = await Review.find({ product: productId })
+      .populate({ path: "user", select: "name photo" })
+      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1 });
+    const order = await Order.find({
+      user: userId,
+      orderItems: { $elemMatch: { productId: productId } },
+    });
+    reviewButton = order.length > 0 ? true : false;
+    await redis.set(key, JSON.stringify({ reviews, reviewButton }));
+  }
+
+  return res.status(201).json({
+    success: true,
+    message: "All reviews fetched successfully",
+    reviews,
+    reviewButton,
+  });
+});
 
 export const newProduct = TryCatch(
   async (
@@ -250,29 +296,6 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
   });
 });
 
-export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
-  const productId = req.params.id;
-
-  const { id: userId } = req.query;
-
-  const order = await Order.find({
-    user: userId,
-    orderItems: { $elemMatch: { productId: productId } },
-  });
-
-  const reviews = await Review.find({ product: productId })
-    .populate({ path: "user", select: "name photo" })
-    .sort({ updatedAt: -1 })
-    .sort({ createdAt: -1 });
-
-  return res.status(201).json({
-    success: true,
-    message: "All reviews fetched successfully",
-    reviews,
-    reviewButton: order.length > 0 ? true : false,
-  });
-});
-
 export const newReview = TryCatch(async (req, res, next) => {
   const user = await User.findById(req.query.id);
   if (!user) {
@@ -318,7 +341,12 @@ export const newReview = TryCatch(async (req, res, next) => {
 
   await product.save();
 
-  invalidateCache({ product: true, productId: productId, admin: true });
+  invalidateCache({
+    product: true,
+    admin: true,
+    productId: productId,
+    userId: user._id,
+  });
 
   return res.status(201).json({
     success: true,
@@ -327,8 +355,8 @@ export const newReview = TryCatch(async (req, res, next) => {
 });
 
 export const deleteReview = TryCatch(async (req, res, next) => {
-  const user = req.query.id;
-  const isAuthentic = await User.findById(user);
+  const userId = req.query.id;
+  const isAuthentic = await User.findById(userId);
 
   if (!isAuthentic) {
     return next(new ErrorHandler("Please login to delete the review", 401));
@@ -354,7 +382,7 @@ export const deleteReview = TryCatch(async (req, res, next) => {
   if (
     isAuthentic &&
     isAuthentic.role !== "admin" &&
-    review.user.toString() !== user
+    review.user.toString() !== userId
   ) {
     return next(
       new ErrorHandler("You are not authorised to delete this review", 401)
@@ -376,7 +404,12 @@ export const deleteReview = TryCatch(async (req, res, next) => {
 
   await product.save();
 
-  invalidateCache({ product: true, productId: productId, admin: true });
+  invalidateCache({
+    product: true,
+    productId: productId,
+    admin: true,
+    userId: isAuthentic._id,
+  });
 
   return res.status(200).json({
     success: true,
