@@ -1,9 +1,18 @@
 import crypto from "crypto";
-import { razorpay } from "../app.js";
+import { razorpay, redis } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Coupon } from "../models/coupon.js";
 import { Payment } from "../models/payment.js";
 import ErrorHandler from "../utils/utility-class.js";
+import { invalidateCache } from "../utils/features.js";
+
+export const razorpayApiKey = TryCatch(async (req, res, next) => {
+  return res.status(200).json({
+    success: true,
+    message: "Razorpay API key fetched successfully",
+    key_id: process.env.RAZORPAY_KEY_ID,
+  });
+});
 
 export const createRazorpayPaymentIntent = TryCatch(async (req, res, next) => {
   const { amount } = req.body;
@@ -64,13 +73,6 @@ export const razorpayPaymentVerification = TryCatch(async (req, res, next) => {
   }
 });
 
-export const razorpayApiKey = TryCatch(async (req, res, next) => {
-  return res.status(200).json({
-    success: true,
-    key_id: process.env.RAZORPAY_KEY_ID,
-  });
-});
-
 export const createPayment = TryCatch(async (req, res, next) => {
   const {
     order,
@@ -107,28 +109,19 @@ export const createPayment = TryCatch(async (req, res, next) => {
   });
 });
 
-export const applyDiscount = TryCatch(async (req, res, next) => {
-  const { coupon } = req.query;
-
-  if (!coupon) {
-    return next(new ErrorHandler("Please enter a coupon code", 400));
-  }
-
-  const discount = await Coupon.findOne({ code: coupon });
-
-  if (!discount) {
-    return next(new ErrorHandler("Invalid coupon code", 400));
-  }
-
-  return res.status(200).json({
-    success: true,
-    discount: discount.amount,
-    message: "Coupon applied successfully",
-  });
-});
-
 export const getAllCoupons = TryCatch(async (req, res, next) => {
-  const coupons = await Coupon.find();
+  const key = "all-coupons";
+
+  let coupons;
+
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    coupons = JSON.parse(cachedData);
+  } else {
+    coupons = await Coupon.find();
+    await redis.set(key, JSON.stringify(coupons));
+  }
 
   return res.status(200).json({
     success: true,
@@ -141,16 +134,64 @@ export const getAllCoupons = TryCatch(async (req, res, next) => {
 export const getCoupon = TryCatch(async (req, res, next) => {
   const { id } = req.params;
 
-  const coupon = await Coupon.findById(id);
+  if (!id) {
+    return next(new ErrorHandler("Please enter a coupon id", 400));
+  }
 
-  if (!coupon) {
-    return next(new ErrorHandler("Coupon not found", 404));
+  const key = `coupon-${id}`;
+
+  let coupon;
+
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    coupon = JSON.parse(cachedData);
+  } else {
+    coupon = await Coupon.findById(id);
+
+    if (!coupon) {
+      return next(new ErrorHandler("Coupon not found", 404));
+    }
+
+    await redis.set(key, JSON.stringify(coupon));
   }
 
   return res.status(200).json({
     success: true,
     message: `Coupon ${coupon.code} fetched successfully`,
     coupon,
+  });
+});
+
+export const applyDiscount = TryCatch(async (req, res, next) => {
+  const { coupon } = req.query;
+
+  if (!coupon) {
+    return next(new ErrorHandler("Please enter a coupon code", 400));
+  }
+
+  const key = `coupon-${coupon}`;
+
+  let discount;
+
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    discount = JSON.parse(cachedData);
+  } else {
+    discount = await Coupon.findOne({ code: coupon });
+
+    if (!discount) {
+      return next(new ErrorHandler("Invalid coupon code", 400));
+    }
+
+    await redis.set(key, discount.amount);
+  }
+
+  return res.status(200).json({
+    success: true,
+    discount: discount.amount,
+    message: "Coupon applied successfully",
   });
 });
 
@@ -180,6 +221,8 @@ export const newCoupon = TryCatch(async (req, res, next) => {
     includeCharacters,
     includeSymbols,
   });
+
+  invalidateCache({ coupon: true });
 
   return res.status(201).json({
     success: true,
@@ -225,6 +268,8 @@ export const updateCoupon = TryCatch(async (req, res, next) => {
 
   await coupon.save();
 
+  invalidateCache({ coupon: true, couponId: id });
+
   return res.status(200).json({
     success: true,
     message: `Coupon ${coupon.code} updated successfully`,
@@ -241,6 +286,8 @@ export const deleteCoupon = TryCatch(async (req, res, next) => {
   }
 
   await coupon.deleteOne();
+
+  invalidateCache({ coupon: true, couponId: id });
 
   return res.status(200).json({
     success: true,
