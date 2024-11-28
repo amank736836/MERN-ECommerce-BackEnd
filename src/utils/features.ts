@@ -1,10 +1,11 @@
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import mongoose, { Document } from "mongoose";
-import { myCache } from "../app.js";
+import { myCache, redis } from "../app.js";
 import { Product } from "../models/product.js";
 import { InvalidateCacheProps, orderItemType } from "../types/types.js";
 import ErrorHandler from "./utility-class.js";
 import { Review } from "../models/review.js";
+import { Redis } from "ioredis";
 
 export const setRatingInProduct = async (productId: string) => {
   const product = await Product.findById(productId);
@@ -86,6 +87,17 @@ export const connectDB = (uri: string) => {
     });
 };
 
+export const connectRedis = (uri: string) => {
+  const redis = new Redis(uri);
+  redis.on("connect", () => {
+    console.log("Redis connected");
+  });
+  redis.on("error", (err) => {
+    console.log(`Redis error: ${err}`);
+  });
+  return redis;
+};
+
 export const invalidateCache = ({
   product,
   order,
@@ -103,6 +115,10 @@ export const invalidateCache = ({
 
     if (typeof productId === "string") {
       productKeys.push(`product-${productId}`);
+      productKeys.push(`reviews-${productId}`);
+      if (userId) {
+        productKeys.push(`reviewsButton-${productId}-${userId}`);
+      }
     }
     if (
       Array.isArray(productId) &&
@@ -114,7 +130,7 @@ export const invalidateCache = ({
       });
     }
 
-    myCache.del(productKeys);
+    redis.del(productKeys);
   }
   if (order) {
     const orderKeys: string[] = [
@@ -122,10 +138,10 @@ export const invalidateCache = ({
       `my-orders-${userId}`,
       `order-${orderId}`,
     ];
-    myCache.del(orderKeys);
+    redis.del(orderKeys);
   }
   if (admin) {
-    myCache.del([
+    redis.del([
       "admin-stats",
       "admin-pie-charts",
       "admin-bar-charts",
