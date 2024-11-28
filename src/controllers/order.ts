@@ -160,8 +160,10 @@ export const processOrder = TryCatch(async (req, res, next) => {
   invalidateCache({
     order: true,
     admin: true,
+    review: true,
     userId: order.user,
     orderId: String(order._id),
+    productId: order.orderItems.map((item) => item.productId.toString()),
   });
 
   return res.status(200).json({
@@ -214,6 +216,7 @@ export const cancelOrder = TryCatch(async (req, res, next) => {
     product: true,
     order: true,
     admin: true,
+    review: true,
     userId: order.user,
     orderId: String(order._id),
     productId: order.orderItems.map((item) => item.productId.toString()),
