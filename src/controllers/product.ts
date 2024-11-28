@@ -236,6 +236,7 @@ export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
     const order = await Order.find({
       user: userId,
       orderItems: { $elemMatch: { productId: productId } },
+      status: "Delivered",
     });
     reviewButton = order.length > 0 ? true : false;
     await redis.set(key, JSON.stringify({ reviews, reviewButton }));
@@ -400,6 +401,7 @@ export const newReview = TryCatch(async (req, res, next) => {
   invalidateCache({
     product: true,
     admin: true,
+    review: true,
     productId: productId,
   });
 
@@ -460,9 +462,10 @@ export const deleteReview = TryCatch(async (req, res, next) => {
   await product.save();
 
   invalidateCache({
+    review: true,
     product: true,
-    productId: productId,
     admin: true,
+    productId: productId,
     userId: isAuthentic._id,
   });
 
