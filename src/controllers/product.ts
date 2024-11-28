@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { myCache, redis } from "../app.js";
+import { redis } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Order } from "../models/order.js";
 import { Product } from "../models/product.js";
@@ -23,10 +23,11 @@ export const getLatestProducts = TryCatch(async (req, res, next) => {
   const key = "latest-products";
 
   let products;
-  products = await redis.get(key);
 
-  if (products) {
-    products = JSON.parse(products);
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    products = JSON.parse(cachedData);
   } else {
     products = await Product.find().sort({ createdAt: -1 }).limit(5);
     await redis.set(key, JSON.stringify(products));
@@ -44,10 +45,11 @@ export const getAllCategories = TryCatch(async (req, res, next) => {
   const key = "categories";
 
   let categories;
-  categories = await redis.get(key);
 
-  if (categories) {
-    categories = JSON.parse(categories);
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    categories = JSON.parse(cachedData);
   } else {
     categories = await Product.distinct("category");
     await redis.set("categories", JSON.stringify(categories));
@@ -65,10 +67,11 @@ export const getAllProducts = TryCatch(async (req, res, next) => {
   const key = "all-products";
 
   let products;
-  products = await redis.get(key);
 
-  if (products) {
-    products = JSON.parse(products);
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    products = JSON.parse(cachedData);
   } else {
     products = await Product.find();
     await redis.set("all-products", JSON.stringify(products));
@@ -83,13 +86,19 @@ export const getAllProducts = TryCatch(async (req, res, next) => {
 
 export const getSingleProduct = TryCatch(async (req, res, next) => {
   const { id } = req.params;
+
+  if (!id) {
+    return next(new ErrorHandler("Please enter a product id", 400));
+  }
+
   const key = `product-${id}`;
 
   let product;
-  product = await redis.get(key);
 
-  if (product) {
-    product = JSON.parse(product);
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    product = JSON.parse(cachedData);
   } else {
     product = await Product.findById(id);
     if (!product) {
@@ -108,43 +117,84 @@ export const getSingleProduct = TryCatch(async (req, res, next) => {
 export const getSearchProducts = TryCatch(
   async (req: Request<{}, {}, {}, SearchRequestQuery>, res, next) => {
     const { search, sort, category, price } = req.query;
+
     const page = Number(req.query.page) || 1;
     const limit = Number(process.env.PRODUCT_PER_PAGE) || 8;
     const skip = limit * (page - 1);
 
-    const baseQuery: BaseQuery = {};
+    const key = `search-${search}-${sort}-${category}-${price}-${page}`;
 
-    if (search) {
-      baseQuery.name = {
-        $regex: search,
-        $options: "i",
-      };
+    let products;
+    let totalPage;
+    let minAmount;
+    let maxAmount;
+    let categories;
+
+    const cachedData = await redis.get(key);
+
+    if (cachedData) {
+      const {
+        products: dataProducts,
+        totalPage: dataTotalPage,
+        minAmount: dataMinAmount,
+        maxAmount: dataMaxAmount,
+        categories: dataCategories,
+      } = JSON.parse(cachedData);
+      products = dataProducts;
+      totalPage = dataTotalPage;
+      minAmount = dataMinAmount;
+      maxAmount = dataMaxAmount;
+      categories = dataCategories;
+    } else {
+      const baseQuery: BaseQuery = {};
+
+      if (search) {
+        baseQuery.name = {
+          $regex: search,
+          $options: "i",
+        };
+      }
+      if (price) {
+        baseQuery.price = {
+          $lte: Number(price),
+        };
+      }
+      if (category) {
+        baseQuery.category = category;
+      }
+
+      const productsPromise = Product.find({ ...baseQuery })
+        .sort(sort ? { price: sort === "asc" ? 1 : -1 } : undefined)
+        .limit(limit)
+        .skip(skip);
+
+      const [productsData, filteredOnlyProducts, categoriesData] =
+        await Promise.all([
+          productsPromise,
+          Product.find({ ...baseQuery }),
+          Product.find({ ...baseQuery }).distinct("category"),
+        ]);
+
+      products = productsData;
+      categories = categoriesData;
+      totalPage = Math.ceil(filteredOnlyProducts.length / limit);
+      minAmount = Math.min(...filteredOnlyProducts.map((p) => p.price));
+      maxAmount = Math.max(...filteredOnlyProducts.map((p) => p.price));
+
+      await redis.setex(
+        key,
+        3600,
+        JSON.stringify({
+          products,
+          totalPage,
+          minAmount,
+          maxAmount,
+          categories,
+        })
+      );
     }
-    if (price) {
-      baseQuery.price = {
-        $lte: Number(price),
-      };
-    }
-    if (category) {
-      baseQuery.category = category;
-    }
 
-    const productsPromise = Product.find({ ...baseQuery })
-      .sort(sort ? { price: sort === "asc" ? 1 : -1 } : undefined)
-      .limit(limit)
-      .skip(skip);
-
-    const [products, filteredOnlyProducts, filteredOnlyProductsCategories] =
-      await Promise.all([
-        productsPromise,
-        Product.find({ ...baseQuery }),
-        Product.find({ ...baseQuery }).distinct("category"),
-      ]);
-
-    const totalPage = Math.ceil(filteredOnlyProducts.length / limit);
-
-    const minAmount = Math.min(...filteredOnlyProducts.map((p) => p.price));
-    const maxAmount = Math.max(...filteredOnlyProducts.map((p) => p.price));
+    console.log(search, sort, category, price);
 
     res.status(200).json({
       success: true,
@@ -153,7 +203,7 @@ export const getSearchProducts = TryCatch(
       totalPage,
       minAmount,
       maxAmount,
-      categories: filteredOnlyProductsCategories,
+      categories,
     });
   }
 );
@@ -162,9 +212,15 @@ export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
   const productId = req.params.id;
   const { id: userId } = req.query;
 
+  if (!userId) {
+    return next(new ErrorHandler("Please login to see the reviews", 401));
+  }
+
   const key = `reviews-${productId}-${userId}`;
+
   let reviews;
   let reviewButton;
+
   const cachedData = await redis.get(key);
 
   if (cachedData) {
@@ -345,7 +401,6 @@ export const newReview = TryCatch(async (req, res, next) => {
     product: true,
     admin: true,
     productId: productId,
-    userId: user._id,
   });
 
   return res.status(201).json({
