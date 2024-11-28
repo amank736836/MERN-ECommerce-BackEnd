@@ -9,7 +9,7 @@ import NodeCache from "node-cache";
 // Importing Middlewares
 
 // Importing Utils
-import { connectDB } from "./utils/features.js";
+import { connectDB, connectRedis } from "./utils/features.js";
 import ErrorHandler from "./utils/utility-class.js";
 
 // Importing Routes
@@ -37,8 +37,10 @@ export const razorpay = new Razorpay({
 
 const port = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || "";
+const REDIS_URI = process.env.REDIS_URI || "";
 
 connectDB(MONGO_URI);
+export const redis = connectRedis(REDIS_URI);
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
