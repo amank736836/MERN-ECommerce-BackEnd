@@ -123,6 +123,7 @@ export const invalidateCache = async ({
   admin,
   user,
   coupon,
+  review,
   userId,
   orderId,
   productId,
@@ -137,8 +138,10 @@ export const invalidateCache = async ({
 
     if (typeof productId === "string") {
       productKeys.push(`product-${productId}`);
-      const keys = await findKeysByPattern(`reviews-${productId}-*`);
-      productKeys.push(...keys);
+      if (review) {
+        const keys = await findKeysByPattern(`reviews-${productId}-*`);
+        productKeys.push(...keys);
+      }
     }
 
     if (
@@ -148,8 +151,10 @@ export const invalidateCache = async ({
     ) {
       productId.forEach(async (id) => {
         productKeys.push(`product-${id}`);
-        const keys = await findKeysByPattern(`reviews-${id}-*`);
-        productKeys.push(...keys);
+        if (review) {
+          const keys = await findKeysByPattern(`reviews-${id}-*`);
+          productKeys.push(...keys);
+        }
       });
     }
 
