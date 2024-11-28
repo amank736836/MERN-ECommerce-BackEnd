@@ -1,5 +1,4 @@
-import { get } from "http";
-import { myCache } from "../app.js";
+import { redis } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Order } from "../models/order.js";
 import { Product } from "../models/product.js";
@@ -11,10 +10,14 @@ import {
 } from "../utils/features.js";
 
 export const getDashboardStats = TryCatch(async (req, res, next) => {
-  let stats;
   let key = "admin-stats";
-  if (myCache.has(key)) {
-    stats = JSON.parse(myCache.get(key) as string);
+
+  let stats;
+
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    stats = JSON.parse(cachedData);
   } else {
     const today = new Date();
     const sixMonthsAgo = new Date();
@@ -187,7 +190,7 @@ export const getDashboardStats = TryCatch(async (req, res, next) => {
       latestOrders: modifiedLatestOrders,
     };
 
-    myCache.set(key, JSON.stringify(stats));
+    await redis.set(key, JSON.stringify(stats));
   }
   return res.status(200).json({
     success: true,
@@ -197,10 +200,14 @@ export const getDashboardStats = TryCatch(async (req, res, next) => {
 });
 
 export const getPieCharts = TryCatch(async (req, res, next) => {
-  let charts;
   let key = "admin-pie-charts";
-  if (myCache.has(key)) {
-    charts = JSON.parse(myCache.get(key) as string);
+
+  let charts;
+
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    charts = JSON.parse(cachedData);
   } else {
     const allOrderPromise = Order.find({}).select([
       "total",
@@ -300,7 +307,7 @@ export const getPieCharts = TryCatch(async (req, res, next) => {
       adminCustomer,
     };
 
-    myCache.set(key, JSON.stringify(charts));
+    await redis.set(key, JSON.stringify(charts));
   }
 
   return res.status(200).json({
@@ -311,10 +318,14 @@ export const getPieCharts = TryCatch(async (req, res, next) => {
 });
 
 export const getBarCharts = TryCatch(async (req, res, next) => {
-  let charts;
   let key = "admin-bar-charts";
-  if (myCache.has(key)) {
-    charts = JSON.parse(myCache.get(key) as string);
+
+  let charts;
+
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    charts = JSON.parse(cachedData);
   } else {
     const today = new Date();
     const sixMonthsAgo = new Date();
@@ -359,7 +370,7 @@ export const getBarCharts = TryCatch(async (req, res, next) => {
       orders: orderCount,
     };
 
-    myCache.set(key, JSON.stringify(charts));
+    await redis.set(key, JSON.stringify(charts));
   }
 
   return res.status(200).json({
@@ -370,10 +381,14 @@ export const getBarCharts = TryCatch(async (req, res, next) => {
 });
 
 export const getLineCharts = TryCatch(async (req, res, next) => {
-  let charts;
   let key = "admin-line-charts";
-  if (myCache.has(key)) {
-    charts = JSON.parse(myCache.get(key) as string);
+
+  let charts;
+
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    charts = JSON.parse(cachedData);
   } else {
     const today = new Date();
     const twelveMonthsAgo = new Date();
@@ -415,7 +430,7 @@ export const getLineCharts = TryCatch(async (req, res, next) => {
       revenue: revenue,
     };
 
-    myCache.set(key, JSON.stringify(charts));
+    await redis.set(key, JSON.stringify(charts));
   }
 
   return res.status(200).json({
