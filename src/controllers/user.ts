@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
+import { redis } from "../app.js";
+import { TryCatch } from "../middlewares/error.js";
 import { User } from "../models/user.js";
 import { NewUserRequestBody } from "../types/types.js";
-import ErrorHandler from "../utils/utility-class.js";
-import { TryCatch } from "../middlewares/error.js";
-import { redis } from "../app.js";
 import { invalidateCache } from "../utils/features.js";
+import ErrorHandler from "../utils/utility-class.js";
 
 export const getAllUsers = TryCatch(
   async (req: Request, res: Response, next: NextFunction) => {
