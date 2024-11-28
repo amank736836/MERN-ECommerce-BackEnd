@@ -1,4 +1,4 @@
-import { myCache } from "../app.js";
+import { redis } from "../app.js";
 import { User } from "../models/user.js";
 import ErrorHandler from "../utils/utility-class.js";
 import { TryCatch } from "./error.js";
@@ -10,12 +10,21 @@ export const adminOnly = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Please provide admin id", 401));
   }
 
-  if (myCache.has(`${id}-admin`)) {
-    return next();
+  const key = `admin-${id}`;
+
+  let user;
+
+  const cachedData = await redis.get(key);
+
+  if (cachedData) {
+    user = JSON.parse(cachedData);
+    if (user) {
+      return next();
+    }
   }
 
-  const user = await User.findById(id);
-  
+  user = await User.findById(id);
+
   if (!user) {
     return next(new ErrorHandler("User not found", 401));
   }
@@ -24,7 +33,7 @@ export const adminOnly = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("You are not authorized", 403));
   }
 
-  myCache.set(`${id}-admin`, true);
+  redis.set(key, "true", "EX", 60 * 60);
 
   next();
 });
