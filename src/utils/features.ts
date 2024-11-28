@@ -98,13 +98,35 @@ export const connectRedis = (uri: string) => {
   return redis;
 };
 
-export const invalidateCache = ({
+async function findKeysByPattern(pattern: string) {
+  let cursor = "0";
+  let keys: string[] = [];
+
+  do {
+    const [nextCursor, matchedKeys] = await redis.scan(
+      cursor,
+      "MATCH",
+      pattern,
+      "COUNT",
+      100
+    );
+    cursor = nextCursor;
+    keys = keys.concat(matchedKeys);
+  } while (cursor !== "0");
+
+  return keys;
+}
+
+export const invalidateCache = async ({
   product,
   order,
   admin,
+  user,
+  coupon,
   userId,
   orderId,
   productId,
+  couponId,
 }: InvalidateCacheProps) => {
   if (product) {
     const productKeys: string[] = [
@@ -115,38 +137,61 @@ export const invalidateCache = ({
 
     if (typeof productId === "string") {
       productKeys.push(`product-${productId}`);
-      productKeys.push(`reviews-${productId}`);
-      if (userId) {
-        productKeys.push(`reviewsButton-${productId}-${userId}`);
-      }
+      const keys = await findKeysByPattern(`reviews-${productId}-*`);
+      productKeys.push(...keys);
     }
+
     if (
       Array.isArray(productId) &&
       productId !== null &&
       productId.length > 0
     ) {
-      productId.forEach((id) => {
+      productId.forEach(async (id) => {
         productKeys.push(`product-${id}`);
+        const keys = await findKeysByPattern(`reviews-${id}-*`);
+        productKeys.push(...keys);
       });
     }
 
     redis.del(productKeys);
   }
+  if (user) {
+    const userKeys: string[] = ["all-users"];
+
+    if (userId) {
+      userKeys.push(`user-${userId}`);
+    }
+
+    redis.del(userKeys);
+  }
   if (order) {
-    const orderKeys: string[] = [
-      "all-orders",
-      `my-orders-${userId}`,
-      `order-${orderId}`,
-    ];
+    const orderKeys: string[] = ["all-orders"];
+
+    if (userId) {
+      orderKeys.push(`my-orders-${userId}`);
+      orderKeys.push(`order-${orderId}`);
+    }
+
     redis.del(orderKeys);
   }
   if (admin) {
-    redis.del([
+    const adminKeys: string[] = [
       "admin-stats",
       "admin-pie-charts",
       "admin-bar-charts",
       "admin-line-charts",
-    ]);
+    ];
+
+    redis.del(adminKeys);
+  }
+  if (coupon) {
+    const couponKeys: string[] = ["all-coupons"];
+
+    if (couponId) {
+      couponKeys.push(`coupon-${couponId}`);
+    }
+
+    redis.del(couponKeys);
   }
 };
 
