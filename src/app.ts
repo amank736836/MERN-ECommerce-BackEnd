@@ -4,7 +4,6 @@ import cors from "cors";
 import { config } from "dotenv";
 import express from "express";
 import morgan from "morgan";
-import NodeCache from "node-cache";
 
 // Importing Middlewares
 
@@ -27,8 +26,6 @@ import { errorMiddleware } from "./middlewares/error.js";
 config({
   path: "./.env",
 });
-
-export const myCache = new NodeCache();
 
 export const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || "",
