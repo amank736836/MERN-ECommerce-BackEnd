@@ -194,8 +194,6 @@ export const getSearchProducts = TryCatch(
       );
     }
 
-    console.log(search, sort, category, price);
-
     res.status(200).json({
       success: true,
       message: "Filtered products",
@@ -216,7 +214,7 @@ export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
     return next(new ErrorHandler("Please login to see the reviews", 401));
   }
 
-  const key = `reviews-${productId}-${userId}`;
+  const key = `reviews-${productId}`;
 
   let reviews;
   let reviewButton;
@@ -284,7 +282,10 @@ export const newProduct = TryCatch(
       photos: photosUrl,
     });
 
-    invalidateCache({ product: true, admin: true });
+    invalidateCache({
+      admin: true,
+      product: true,
+    });
 
     res.status(201).json({
       success: true,
@@ -322,7 +323,11 @@ export const updateProduct = TryCatch(async (req, res, next) => {
 
   await product.save();
 
-  invalidateCache({ product: true, productId: id, admin: true });
+  invalidateCache({
+    admin: true,
+    product: true,
+    productId: id,
+  });
 
   return res.status(200).json({
     success: true,
@@ -345,7 +350,12 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
 
   await product.deleteOne();
 
-  invalidateCache({ product: true, productId: id, admin: true });
+  invalidateCache({
+    admin: true,
+    review: true,
+    product: true,
+    productId: id,
+  });
 
   return res.status(200).json({
     success: true,
@@ -399,9 +409,9 @@ export const newReview = TryCatch(async (req, res, next) => {
   await product.save();
 
   invalidateCache({
-    product: true,
     admin: true,
     review: true,
+    product: true,
     productId: productId,
   });
 
@@ -462,11 +472,10 @@ export const deleteReview = TryCatch(async (req, res, next) => {
   await product.save();
 
   invalidateCache({
+    admin: true,
     review: true,
     product: true,
-    admin: true,
     productId: productId,
-    userId: isAuthentic._id,
   });
 
   return res.status(200).json({
