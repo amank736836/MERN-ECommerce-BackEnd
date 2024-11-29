@@ -17,9 +17,6 @@ import { multiUpload } from "../middlewares/multer.js";
 
 const app = express.Router();
 
-// Create New Product - /api/v1/product/new
-app.post("/new", adminOnly, multiUpload(), newProduct);
-
 // Get Search Products with filters - /api/v1/product/search?keyword=apple&category=Electronics
 app.get("/search", getSearchProducts);
 
@@ -31,6 +28,9 @@ app.get("/categories", getAllCategories);
 
 // Get All Products - /api/v1/product/admin-products
 app.get("/admin-products", adminOnly, getAllProducts);
+
+// Create New Product - /api/v1/product/new
+app.post("/new", adminOnly, multiUpload(), newProduct);
 
 // Get, Update, and Delete Product - /api/v1/product/:id
 app
