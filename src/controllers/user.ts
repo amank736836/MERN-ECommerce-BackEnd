@@ -92,8 +92,8 @@ export const newUser = TryCatch(
     });
 
     invalidateCache({
-      user: true,
       admin: true,
+      user: true,
     });
 
     return res.status(201).json({
