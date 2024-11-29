@@ -210,10 +210,6 @@ export const allReviewsOfProduct = TryCatch(async (req, res, next) => {
   const productId = req.params.id;
   const { id: userId } = req.query;
 
-  if (!userId) {
-    return next(new ErrorHandler("Please login to see the reviews", 401));
-  }
-
   const key = `reviews-${productId}`;
 
   let reviews;
