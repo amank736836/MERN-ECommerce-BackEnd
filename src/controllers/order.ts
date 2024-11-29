@@ -119,10 +119,10 @@ export const newOrder = TryCatch(
     });
 
     invalidateCache({
-      product: true,
-      order: true,
       admin: true,
+      order: true,
       userId: user,
+      product: true,
       productId: orderItems.map((item) => item.productId),
     });
 
@@ -158,12 +158,12 @@ export const processOrder = TryCatch(async (req, res, next) => {
   await order.save();
 
   invalidateCache({
-    order: true,
     admin: true,
     review: true,
     userId: order.user,
-    orderId: String(order._id),
     productId: order.orderItems.map((item) => item.productId.toString()),
+    order: true,
+    orderId: String(order._id),
   });
 
   return res.status(200).json({
@@ -213,12 +213,12 @@ export const cancelOrder = TryCatch(async (req, res, next) => {
   }
 
   invalidateCache({
-    product: true,
-    order: true,
     admin: true,
     review: true,
     userId: order.user,
+    order: true,
     orderId: String(order._id),
+    product: true,
     productId: order.orderItems.map((item) => item.productId.toString()),
   });
 
@@ -262,9 +262,9 @@ export const deleteOrder = TryCatch(async (req, res, next) => {
   }
 
   invalidateCache({
-    order: true,
     admin: true,
     userId: order.user,
+    order: true,
     orderId: String(order._id),
   });
 
