@@ -98,35 +98,16 @@ export const connectRedis = (uri: string) => {
   return redis;
 };
 
-async function findKeysByPattern(pattern: string) {
-  let cursor = "0";
-  let keys: string[] = [];
-
-  do {
-    const [nextCursor, matchedKeys] = await redis.scan(
-      cursor,
-      "MATCH",
-      pattern,
-      "COUNT",
-      100
-    );
-    cursor = nextCursor;
-    keys = keys.concat(matchedKeys);
-  } while (cursor !== "0");
-
-  return keys;
-}
-
 export const invalidateCache = async ({
-  product,
-  order,
   admin,
-  user,
-  coupon,
   review,
-  userId,
-  orderId,
+  product,
   productId,
+  order,
+  orderId,
+  user,
+  userId,
+  coupon,
   couponId,
 }: InvalidateCacheProps) => {
   if (product) {
@@ -139,8 +120,7 @@ export const invalidateCache = async ({
     if (typeof productId === "string") {
       productKeys.push(`product-${productId}`);
       if (review) {
-        const keys = await findKeysByPattern(`reviews-${productId}-*`);
-        productKeys.push(...keys);
+        productKeys.push(`reviews-${productId}`);
       }
     }
 
@@ -152,8 +132,7 @@ export const invalidateCache = async ({
       productId.forEach(async (id) => {
         productKeys.push(`product-${id}`);
         if (review) {
-          const keys = await findKeysByPattern(`reviews-${id}-*`);
-          productKeys.push(...keys);
+          productKeys.push(`reviews-${id}`);
         }
       });
     }
@@ -174,6 +153,9 @@ export const invalidateCache = async ({
 
     if (userId) {
       orderKeys.push(`my-orders-${userId}`);
+    }
+
+    if (orderId) {
       orderKeys.push(`order-${orderId}`);
     }
 
