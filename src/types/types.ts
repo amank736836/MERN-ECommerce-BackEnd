@@ -32,6 +32,7 @@ export type orderItemType = {
   quantity: number;
   productId: string;
 };
+
 export interface NewOrderRequestBody {
   shippingInfo: shippingInfoType;
   user: string;
@@ -79,4 +80,16 @@ export type InvalidateCacheProps = {
   productId?: string | string[];
   coupon?: boolean;
   couponId?: string;
+};
+
+export type CartItem = {
+  productId: string;
+  name: string;
+  photos: {
+    url: string;
+    public_id: string;
+  }[];
+  price: number;
+  quantity: number;
+  stock: number;
 };
