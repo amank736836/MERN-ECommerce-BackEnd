@@ -34,14 +34,10 @@ export type orderItemType = {
 };
 
 export interface NewOrderRequestBody {
-  shippingInfo: shippingInfoType;
-  user: string;
-  subtotal: number;
-  tax: number;
-  shippingCharges: number;
-  discount: number;
-  total: number;
   orderItems: orderItemType[];
+  shippingInfo: shippingInfoType;
+  coupon: string;
+  user: string;
 }
 
 export type ControllerType = (
