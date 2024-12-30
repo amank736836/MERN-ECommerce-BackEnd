@@ -96,6 +96,18 @@ export const razorpayPaymentVerification = TryCatch(async (req, res, next) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
 
+  if (!razorpay_order_id) {
+    return next(new ErrorHandler("Please enter a razorpay order id", 400));
+  }
+
+  if (!razorpay_payment_id) {
+    return next(new ErrorHandler("Please enter a razorpay payment id", 400));
+  }
+
+  if (!razorpay_signature) {
+    return next(new ErrorHandler("Please enter a razorpay signature", 400));
+  }
+
   const body = razorpay_order_id + "|" + razorpay_payment_id;
 
   const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET
@@ -134,15 +146,28 @@ export const createPayment = TryCatch(async (req, res, next) => {
     razorpay_signature,
   } = req.body;
 
-  if (
-    !order ||
-    !user ||
-    !paymentStatus ||
-    !razorpay_order_id ||
-    !razorpay_payment_id ||
-    !razorpay_signature
-  ) {
-    return next(new ErrorHandler("Please enter all fields", 400));
+  if (!order) {
+    return next(new ErrorHandler("Please enter an order id", 400));
+  }
+
+  if (!user) {
+    return next(new ErrorHandler("Please enter a user id", 400));
+  }
+
+  if (!paymentStatus) {
+    return next(new ErrorHandler("Please enter a payment status", 400));
+  }
+
+  if (!razorpay_order_id) {
+    return next(new ErrorHandler("Please enter a razorpay order id", 400));
+  }
+
+  if (!razorpay_payment_id) {
+    return next(new ErrorHandler("Please enter a razorpay payment id", 400));
+  }
+
+  if (!razorpay_signature) {
+    return next(new ErrorHandler("Please enter a razorpay signature", 400));
   }
 
   await Payment.create({
@@ -258,8 +283,12 @@ export const newCoupon = TryCatch(async (req, res, next) => {
     includeSymbols,
   } = req.body;
 
-  if (!code || !amount) {
-    return next(new ErrorHandler("Please enter both coupon and amount", 400));
+  if (!code) {
+    return next(new ErrorHandler("Please enter a coupon code", 400));
+  }
+
+  if (!amount) {
+    return next(new ErrorHandler("Please enter a coupon amount", 400));
   }
 
   await Coupon.create({
@@ -301,8 +330,12 @@ export const updateCoupon = TryCatch(async (req, res, next) => {
     includeSymbols,
   } = req.body;
 
-  if (!code || !amount) {
-    return next(new ErrorHandler("Please enter both coupon and amount", 400));
+  if (!code) {
+    return next(new ErrorHandler("Please enter a coupon code", 400));
+  }
+
+  if (!amount) {
+    return next(new ErrorHandler("Please enter a coupon amount", 400));
   }
 
   if (coupon.code !== code) coupon.code = code;
