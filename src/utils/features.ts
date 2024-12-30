@@ -4,8 +4,13 @@ import mongoose, { Document } from "mongoose";
 import { redis } from "../app.js";
 import { Product } from "../models/product.js";
 import { Review } from "../models/review.js";
-import { InvalidateCacheProps, orderItemType } from "../types/types.js";
+import {
+  InvalidateCacheProps,
+  orderItemType,
+  shippingInfoType,
+} from "../types/types.js";
 import ErrorHandler from "./utility-class.js";
+import { User } from "../models/user.js";
 
 export const setRatingInProduct = async (productId: string) => {
   const product = await Product.findById(productId);
@@ -195,6 +200,28 @@ export const reduceStock = async (orderItems: orderItemType[]) => {
     product.stock = product.stock - order.quantity;
     await product.save();
   }
+};
+
+export const updateShippingInfo = async (
+  shippingInfo: shippingInfoType,
+  userId: string
+) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ErrorHandler("User not found", 404);
+  }
+  user.shippingInfo.address = shippingInfo.address;
+  user.shippingInfo.city = shippingInfo.city;
+  user.shippingInfo.state = shippingInfo.state;
+  user.shippingInfo.country = shippingInfo.country;
+  user.shippingInfo.pinCode = shippingInfo.pinCode;
+
+  await user.save();
+
+  invalidateCache({
+    user: true,
+    userId,
+  });
 };
 
 export const calculatePercentage = (thisMonth: number, lastMonth: number) => {
