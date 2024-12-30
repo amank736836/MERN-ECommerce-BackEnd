@@ -372,9 +372,15 @@ export const newReview = TryCatch(async (req, res, next) => {
   }
 
   const { rating, comment } = req.body;
-  if (!rating || !comment) {
-    return next(new ErrorHandler("Please fill all the fields", 400));
+
+  if (!rating) {
+    return next(new ErrorHandler("Please provide a rating", 400));
   }
+
+  if (!comment) {
+    return next(new ErrorHandler("Please provide a comment", 400));
+  }
+
   if (rating < 1 || rating > 5) {
     return next(new ErrorHandler("Rating must be between 1 and 5", 400));
   }
