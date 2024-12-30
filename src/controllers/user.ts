@@ -103,11 +103,42 @@ export const newUser = TryCatch(
   }
 );
 
+export const updateUser = TryCatch(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 400));
+    }
+
+    user.role = req.body.role;
+
+    await user.save();
+
+    invalidateCache({
+      admin: true,
+      user: true,
+      userId: req.params.id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "User Updated Successfully",
+    });
+  }
+);
+
 export const deleteUser = TryCatch(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await User.findById(req.params.id);
     if (!user) {
       return next(new ErrorHandler("User not found", 400));
+    }
+
+    if (user.role === "admin") {
+      const AllAdmins = await User.find({ role: "admin" });
+      if (AllAdmins.length === 1) {
+        return next(new ErrorHandler("There should be atleast one admin", 400));
+      }
     }
 
     await user.deleteOne();
