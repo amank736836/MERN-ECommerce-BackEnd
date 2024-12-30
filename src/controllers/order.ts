@@ -1,6 +1,7 @@
 import { Request } from "express";
 import { redis } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
+import { Coupon } from "../models/coupon.js";
 import { Order } from "../models/order.js";
 import { Payment } from "../models/payment.js";
 import { Product } from "../models/product.js";
@@ -89,16 +90,35 @@ export const getSingleOrder = TryCatch(async (req, res, next) => {
 
 export const newOrder = TryCatch(
   async (req: Request<{}, {}, NewOrderRequestBody>, res, next) => {
-    const {
-      shippingInfo,
-      orderItems,
-      user,
-      subtotal,
-      tax,
-      shippingCharges,
-      discount,
-      total,
-    } = req.body;
+    const { shippingInfo, orderItems, user, coupon } = req.body;
+
+    const productIds = orderItems.map((item) => item.productId);
+
+    const products = await Product.find({ _id: { $in: productIds } });
+
+    if (products.length !== productIds.length) {
+      return next(new ErrorHandler("Product not found", 404));
+    }
+
+    const subtotal = products.reduce((acc, item) => {
+      const cartItem = orderItems.find(
+        (Item) => Item.productId === item._id.toString()
+      );
+      if (!cartItem) return acc;
+      return acc + item.price * cartItem.quantity;
+    }, 0);
+
+    const tax = Math.round(subtotal * 0.18);
+    const shippingCharges = subtotal > 1000 ? 0 : subtotal === 0 ? 0 : 100;
+
+    let discount = 0;
+
+    if (coupon) {
+      const couponData = await Coupon.findOne({ code: coupon });
+      discount = couponData ? couponData.amount : 0;
+    }
+
+    const total = subtotal + tax + shippingCharges - discount;
 
     if (!shippingInfo || !orderItems || !user) {
       return next(new ErrorHandler("Please fill all fields", 400));
