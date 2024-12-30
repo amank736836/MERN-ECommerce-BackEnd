@@ -3,7 +3,9 @@ import { razorpay, redis } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Coupon } from "../models/coupon.js";
 import { Payment } from "../models/payment.js";
-import { invalidateCache } from "../utils/features.js";
+import { Product } from "../models/product.js";
+import { CartItem, shippingInfoType } from "../types/types.js";
+import { invalidateCache, updateShippingInfo } from "../utils/features.js";
 import ErrorHandler from "../utils/utility-class.js";
 
 export const razorpayApiKey = TryCatch(async (req, res, next) => {
@@ -15,11 +17,52 @@ export const razorpayApiKey = TryCatch(async (req, res, next) => {
 });
 
 export const createRazorpayPaymentIntent = TryCatch(async (req, res, next) => {
-  const { amount } = req.body;
+  const {
+    cartItems,
+    shippingInfo,
+    coupon,
+    userId,
+  }: {
+    cartItems: CartItem[];
+    shippingInfo: shippingInfoType;
+    coupon: string;
+    userId: string;
+  } = req.body;
 
-  if (!amount) {
-    return next(new ErrorHandler("Please enter an amount", 400));
+  if (!cartItems || !shippingInfo || !userId) {
+    return next(new ErrorHandler("Please enter all fields", 400));
   }
+
+  const productIds = cartItems.map((item) => item.productId);
+
+  const products = await Product.find({ _id: { $in: productIds } });
+
+  if (products.length !== productIds.length) {
+    return next(new ErrorHandler("Product not found", 404));
+  }
+
+  const subtotal = products.reduce((acc, item) => {
+    const cartItem = cartItems.find(
+      (Item) => Item.productId === item._id.toString()
+    );
+    if (!cartItem) return acc;
+    return acc + item.price * cartItem.quantity;
+  }, 0);
+
+  const tax = Math.round(subtotal * 0.18);
+  const shippingCharges = subtotal > 1000 ? 0 : subtotal === 0 ? 0 : 100;
+  const total = subtotal + tax + shippingCharges;
+
+  let discount = 0;
+
+  if (coupon) {
+    const couponData = await Coupon.findOne({ code: coupon });
+    discount = couponData ? couponData.amount : 0;
+  }
+
+  const amount = total - discount;
+
+  await updateShippingInfo(shippingInfo, userId);
 
   const options = {
     amount: Number(amount) * 100,
