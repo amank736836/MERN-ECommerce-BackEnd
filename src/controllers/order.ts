@@ -92,6 +92,18 @@ export const newOrder = TryCatch(
   async (req: Request<{}, {}, NewOrderRequestBody>, res, next) => {
     const { shippingInfo, orderItems, user, coupon } = req.body;
 
+    if (!orderItems) {
+      return next(new ErrorHandler("Please select some items to proceed", 400));
+    }
+
+    if (!shippingInfo) {
+      return next(new ErrorHandler("Please enter shipping information", 400));
+    }
+
+    if (!user) {
+      return next(new ErrorHandler("Please enter a user id", 400));
+    }
+
     const productIds = orderItems.map((item) => item.productId);
 
     const products = await Product.find({ _id: { $in: productIds } });
@@ -119,10 +131,6 @@ export const newOrder = TryCatch(
     }
 
     const total = subtotal + tax + shippingCharges - discount;
-
-    if (!shippingInfo || !orderItems || !user) {
-      return next(new ErrorHandler("Please fill all fields", 400));
-    }
 
     await reduceStock(orderItems);
 
