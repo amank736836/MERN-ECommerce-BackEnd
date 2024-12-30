@@ -13,6 +13,13 @@ interface Iuser extends Document {
   updatedAt: Date;
   // virtual
   age: number;
+  shippingInfo: {
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    pinCode: number;
+  };
 }
 
 const schema = new mongoose.Schema(
@@ -48,6 +55,28 @@ const schema = new mongoose.Schema(
     dob: {
       type: Date,
       required: [true, "Please Enter DOB"],
+    },
+    shippingInfo: {
+      address: {
+        type: String,
+        default: "",
+      },
+      city: {
+        type: String,
+        default: "",
+      },
+      state: {
+        type: String,
+        default: "",
+      },
+      country: {
+        type: String,
+        default: "",
+      },
+      pinCode: {
+        type: Number,
+        default: 0,
+      },
     },
   },
   {
