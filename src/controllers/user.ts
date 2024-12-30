@@ -78,8 +78,28 @@ export const newUser = TryCatch(
       });
     }
 
-    if (!_id || !name || !email || !photo || !gender || !dob) {
-      return next(new ErrorHandler("Please fill all the fields", 400));
+    if (!_id) {
+      return next(new ErrorHandler("Please enter a user id", 400));
+    }
+
+    if (!name) {
+      return next(new ErrorHandler("Please enter a name", 400));
+    }
+
+    if (!email) {
+      return next(new ErrorHandler("Please enter an email", 400));
+    }
+
+    if (!photo) {
+      return next(new ErrorHandler("Please enter a photo", 400));
+    }
+
+    if (!gender) {
+      return next(new ErrorHandler("Please enter a gender", 400));
+    }
+
+    if (!dob) {
+      return next(new ErrorHandler("Please enter a date of birth", 400));
     }
 
     user = await User.create({
