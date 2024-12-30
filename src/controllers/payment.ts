@@ -29,8 +29,16 @@ export const createRazorpayPaymentIntent = TryCatch(async (req, res, next) => {
     userId: string;
   } = req.body;
 
-  if (!cartItems || !shippingInfo || !userId) {
-    return next(new ErrorHandler("Please enter all fields", 400));
+  if (!cartItems) {
+    return next(new ErrorHandler("Please select some items to proceed", 400));
+  }
+
+  if (!shippingInfo) {
+    return next(new ErrorHandler("Please enter shipping information", 400));
+  }
+
+  if (!userId) {
+    return next(new ErrorHandler("Please enter a user id", 400));
   }
 
   const productIds = cartItems.map((item) => item.productId);
