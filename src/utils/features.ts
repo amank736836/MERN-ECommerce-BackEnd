@@ -4,13 +4,13 @@ import mongoose, { Document } from "mongoose";
 import { redis } from "../app.js";
 import { Product } from "../models/product.js";
 import { Review } from "../models/review.js";
+import { User } from "../models/user.js";
 import {
   InvalidateCacheProps,
   orderItemType,
   shippingInfoType,
 } from "../types/types.js";
 import ErrorHandler from "./utility-class.js";
-import { User } from "../models/user.js";
 
 export const setRatingInProduct = async (productId: string) => {
   const product = await Product.findById(productId);
