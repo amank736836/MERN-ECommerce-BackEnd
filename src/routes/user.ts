@@ -4,6 +4,7 @@ import {
   getAllUsers,
   getUserById,
   newUser,
+  updateUser,
 } from "../controllers/user.js";
 import { adminOnly } from "../middlewares/auth.js";
 
@@ -16,6 +17,10 @@ app.post("/new", newUser);
 app.get("/all", adminOnly, getAllUsers);
 
 // Get and Delete User - /api/v1/user/:id
-app.route("/:id").get(getUserById).delete(adminOnly, deleteUser);
+app
+  .route("/:id")
+  .get(getUserById)
+  .delete(adminOnly, deleteUser)
+  .patch(adminOnly, updateUser);
 
 export default app;
