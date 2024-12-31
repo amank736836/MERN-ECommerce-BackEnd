@@ -1,0 +1,66 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo
+    container_name: ecommerce-mongodb
+    ports:
+      - 27069:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodbdata:/data/db
+  redis:
+    image: redis/redis-stack
+    container_name: ecommerce-redis
+    ports:
+      - 6379:6379
+      - 8001:8001
+  server:
+    build:
+      context: ./ecommerce-backend
+      # dockerfile: Dockerfile #build
+      dockerfile: Dockerfile.dev
+    container_name: ecommerce-server
+    ports:
+      - 4000:4000
+    env_file:
+      - ./ecommerce-backend/.env
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://admin:password@mongodb:27017
+      - REDIS_URI=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    develop:
+      watch:
+        - path: ./ecommerce-backend/package*.json
+          action: rebuild
+        - path: ./ecommerce-backend
+          target: /app
+          # action: rebuild #build
+          action: sync #dev
+  client:
+    build:
+      context: ./ecommerce-frontend
+      # dockerfile: Dockerfile #build
+      dockerfile: Dockerfile.dev #dev
+    container_name: ecommerce-client
+    ports:
+      - 5173:5173
+    env_file:
+      - ./ecommerce-frontend/.env
+    depends_on:
+      - server
+    develop:
+      watch:
+        - path: ./ecommerce-frontend/package*.json
+          action: rebuild
+        - path: ./ecommerce-frontend
+          target: /app
+          # action: rebuild #build
+          action: sync #dev
+volumes:
+  mongodbdata:
+    driver: local
