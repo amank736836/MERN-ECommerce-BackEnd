@@ -17,10 +17,7 @@ services:
       - 6379:6379
       - 8001:8001
   server:
-    build:
-      context: ./ecommerce-backend
-      # dockerfile: Dockerfile #build
-      dockerfile: Dockerfile.dev
+    image: amank736836/mern-ecommerce-server-2024:latest
     container_name: ecommerce-server
     ports:
       - 4000:4000
@@ -41,12 +38,9 @@ services:
           target: /app
           # action: rebuild #build
           action: sync #dev
-  client:
-    build:
-      context: ./ecommerce-frontend
-      # dockerfile: Dockerfile #build
-      dockerfile: Dockerfile.dev #dev
-    container_name: ecommerce-client
+  frontend:
+    image: amank736836/mern-ecommerce-frontend-2024:latest
+    container_name: ecommerce-frontend
     ports:
       - 5173:5173
     env_file:
