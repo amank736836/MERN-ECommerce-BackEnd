@@ -130,6 +130,13 @@ export const updateUser = TryCatch(
       return next(new ErrorHandler("User not found", 400));
     }
 
+    if (user.role === "admin") {
+      const AllAdmins = await User.find({ role: "admin" });
+      if (AllAdmins.length === 1) {
+        return next(new ErrorHandler("There should be atleast one admin", 400));
+      }
+    }
+
     user.role = req.body.role;
 
     await user.save();
