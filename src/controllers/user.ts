@@ -69,6 +69,10 @@ export const newUser = TryCatch(
   ) => {
     const { name, email, photo, gender, _id, dob } = req.body;
 
+    if (!_id) {
+      return next(new ErrorHandler("Please enter a user id", 400));
+    }
+
     let user = await User.findById(_id);
 
     if (user) {
@@ -76,10 +80,6 @@ export const newUser = TryCatch(
         success: true,
         message: `Welcome, ${user.name}`,
       });
-    }
-
-    if (!_id) {
-      return next(new ErrorHandler("Please enter a user id", 400));
     }
 
     if (!name) {
@@ -102,11 +102,14 @@ export const newUser = TryCatch(
       return next(new ErrorHandler("Please enter a date of birth", 400));
     }
 
+    const users = await User.find();
+
     user = await User.create({
       name,
       email,
       photo,
       gender,
+      role: users.length === 0 ? "admin" : "user",
       _id,
       dob,
     });
