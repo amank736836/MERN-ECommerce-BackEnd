@@ -1,0 +1,123 @@
+version: "3.8"
+services:
+  mongodb:
+    image: mongo
+    container_name: ecommerce-mongodb
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodbdata:/data/db
+  redis:
+    image: redis/redis-stack
+    container_name: ecommerce-redis
+    ports:
+      - 6379:6379
+      - 8001:8001
+  server1:
+    image: amank736836/mern-ecommerce-server-2024:latest
+    container_name: ecommerce-server1
+    ports:
+      - 4000:4000
+    environment:
+      - PORT=4000
+      - PRODUCT_PER_PAGE=4
+      - NODE_ENV=development
+      - MONGO_DB=Ecommerce_24
+      - MONGO_URI=mongodb://admin:password@mongodb:27017
+      - REDIS_URI=redis://redis:6379
+      - RAZORPAY_KEY_ID=
+      - RAZORPAY_KEY_SECRET=
+      - CLOUDINARY_CLOUD_NAME=
+      - CLOUDINARY_API_KEY=
+      - CLOUDINARY_API_SECRET=
+      - FRONTEND_URL_1=
+      - FRONTEND_URL_2=
+      - FRONTEND_URL_3=
+      - FRONTEND_URL_4=
+      - FRONTEND_URL_5=
+      - FRONTEND_URL_6=
+      - FRONTEND_URL_7=
+      - FRONTEND_URL_8=
+      - FRONTEND_URL_9=
+      - FRONTEND_URL_10=
+      - FRONTEND_URL_11=
+    depends_on:
+      - mongodb
+      - redis
+  server2:
+    image: amank736836/mern-ecommerce-server-2024:latest
+    container_name: ecommerce-server2
+    ports:
+      - 4001:4001
+    environment:
+      - PORT=4001
+      - PRODUCT_PER_PAGE=4
+      - NODE_ENV=development
+      - MONGO_DB=Ecommerce_24
+      - MONGO_URI=mongodb://admin:password@mongodb:27017
+      - REDIS_URI=redis://redis:6379
+      - RAZORPAY_KEY_ID=
+      - RAZORPAY_KEY_SECRET=
+      - CLOUDINARY_CLOUD_NAME=
+      - CLOUDINARY_API_KEY=
+      - CLOUDINARY_API_SECRET=
+      - FRONTEND_URL_1=
+      - FRONTEND_URL_2=
+      - FRONTEND_URL_3=
+      - FRONTEND_URL_4=
+      - FRONTEND_URL_5=
+      - FRONTEND_URL_6=
+      - FRONTEND_URL_7=
+      - FRONTEND_URL_8=
+      - FRONTEND_URL_9=
+      - FRONTEND_URL_10=
+      - FRONTEND_URL_11=
+    depends_on:
+      - mongodb
+      - redis
+  server3:
+    image: amank736836/mern-ecommerce-server-2024:latest
+    container_name: ecommerce-server3
+    ports:
+      - 4002:4002
+    environment:
+      - PORT=4002
+      - PRODUCT_PER_PAGE=4
+      - NODE_ENV=development
+      - MONGO_DB=Ecommerce_24
+      - MONGO_URI=mongodb://admin:password@mongodb:27017
+      - REDIS_URI=redis://redis:6379
+      - RAZORPAY_KEY_ID=
+      - RAZORPAY_KEY_SECRET=
+      - CLOUDINARY_CLOUD_NAME=
+      - CLOUDINARY_API_KEY=
+      - CLOUDINARY_API_SECRET=
+      - FRONTEND_URL_1=
+      - FRONTEND_URL_2=
+      - FRONTEND_URL_3=
+      - FRONTEND_URL_4=
+      - FRONTEND_URL_5=
+      - FRONTEND_URL_6=
+      - FRONTEND_URL_7=
+      - FRONTEND_URL_8=
+      - FRONTEND_URL_9=
+      - FRONTEND_URL_10=
+      - FRONTEND_URL_11=
+    depends_on:
+      - mongodb
+      - redis
+  frontend:
+    image: amank736836/mern-ecommerce-frontend-2024:latest
+    container_name: ecommerce-frontend
+    ports:
+      - 4173:4173
+    depends_on:
+      - server1
+      - server2
+      - server3
+volumes:
+  mongodbdata:
+    driver: local
