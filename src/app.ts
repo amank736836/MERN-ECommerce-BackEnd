@@ -60,6 +60,8 @@ const allowedOrigins = [
   process.env.FRONTEND_URL_7,
   process.env.FRONTEND_URL_8,
   process.env.FRONTEND_URL_9,
+  process.env.FRONTEND_URL_10,
+  process.env.FRONTEND_URL_11,
 ];
 
 app.use(
