@@ -1,0 +1,43 @@
+name: Ecommerce Workflow
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Creating Docker Image
+        run: docker build -t amank736836/mern-ecommerce-server-2024:latest .
+
+      - name: Pushing Docker Image to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker push amank736836/mern-ecommerce-server-2024:latest
+          docker logout
+        
+      - name: SSH login and Deploy
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run : |
+          sudo apt-get update -y
+          sudo apt-get install sshpass -y
+          sudo sshpass -p $SSH_PASSWORD ssh -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST '
+          sudo docker pull amank736836/mern-ecommerce-server-2024:latest && 
+          cd /app &&
+          sudo docker-compose down &&
+          sudo docker-compose up -d &&
+          exit
+          '
+
