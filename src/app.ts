@@ -99,5 +99,5 @@ app.use("*", NotFound);
 app.use(errorMiddleware);
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on updated port ${port}`);
 });
